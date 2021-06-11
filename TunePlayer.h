@@ -1,0 +1,289 @@
+/**
+ * TunePlayer.h
+ * Class for playing tunes from a compressed 16 bit format.
+ * Written by Jotham Gates, 12/06/2021
+ */
+#pragma once
+#include <Arduino.h>
+#include <cppQueue.h>
+
+#include "TuneLoaders.h"
+// TODO: Convert playing to another class
+// TODO: Use microseconds?
+// TODO: Use ifdef for shutting up if needed
+
+#define TUNE_TIMER_1 // Use timer1 on pins 3 or 9 instead of tone. Allows the duty cycle to be set, but less portable.
+// #define PRECISE_FREQS // If using tone and not timer 1, store the required frequency for each note rather than one octave and caculating it. Might be a bit more correct, but more memory.
+#define NOTES_QUEUE_MAX 4
+#define NOTES_QUEUE_MIN_TARGET 2
+#define REPEATS_MAX_CONCURRENT 8
+
+// Notes
+#define NOTE_C 0
+#define NOTE_CS 1
+#define NOTE_D 2
+#define NOTE_DS 3
+#define NOTE_E 4
+#define NOTE_F 5
+#define NOTE_FS 6
+#define NOTE_G 7
+#define NOTE_GS 8
+#define NOTE_A 9
+#define NOTE_AS 10
+#define NOTE_B 11
+#define NOTE_REST 12
+#define NOTE_REPEAT 13
+#define NOTE_SETTING 14
+#define NOTE_END 15
+
+// Effects
+#define EFFECT_NONE 0
+#define EFFECT_STACCATO 1
+#define EFFECT_LEGARTO 2
+
+// Frequencies with special meaning
+#define FREQ_REST 0
+#define FREQ_STOP 1
+
+// Macro to stop playing
+#ifdef TUNE_TIMER_1
+                #define TUNE_OFF TCCR1A = 0; TCCR1B = 0 // Disable timer and set the pin as an input // TODO: Check the pin isn't left in the "HIGH" state
+#else
+                #define TUNE_OFF noTone(pin)
+#endif
+
+/**
+ * Main tune playing class
+ */
+class TunePlayer {
+    public:
+        TunePlayer() {}
+        /**
+         * Initialises the library with the given parameters
+         */
+        void begin(BaseTuneLoader *newTuneLoader, SoundGenerator newSoundGenerator) {
+            tuneLoader = newTuneLoader;
+            soundGenerator = newSoundGenerator;
+        }
+
+        /**
+         * Fills up the queue.
+         */
+        void spool() {
+            while(!m_notesQueue.isFull()) {
+                m_loadNote();
+            }
+        }
+
+        /**
+         * Starts to play the tune
+         */
+        void play() {
+            m_isPlaying = true;
+        }
+
+        /**
+         * Performs all housekeeping operations necessary for tune loading and
+         * playback.
+         */
+        void update() {
+            spool();
+            m_makeNoise();
+#ifdef TUNE_TIMER_1
+            if(m_isPlaying && m_curNoteStop && millis()-m_curNoteStart > m_curNoteStop) {
+                TUNE_OFF;
+            }
+#endif
+        }
+
+        /**
+         * Pauses playback, skipping the end of the current note. If the play
+         * is called again, the tune continures from the next note.
+         * If holdNote is true, keeps playing the same note, otherwise stops
+         * sound generation.
+         */
+        void pause(bool holdNote = false) {
+            if(!holdNote) {
+                TUNE_OFF;
+            }
+            m_isPlaying = false;
+        }
+
+        /**
+         * Stops tune playback, clears the queue and sets the note address back
+         * to the start. If play is called, the tune restarts from the beginning.
+         */
+        void stop() {
+            TUNE_OFF;
+            m_isPlaying = false;
+            m_notesQueue.flush();
+            m_noteIndex = 0;
+            m_nextNoteTime = 0; // So play will work immediately
+        }
+
+        BaseTuneLoader *tuneLoader;
+        SoundGenerator *soundGenerator;
+
+    private:
+        /**
+         * Struct for processed note data to be given to the player.
+         */
+        struct m_NoteData {
+            uint16_t frequency;
+            uint16_t playTime;
+            uint16_t nextTime;
+        };
+
+        /**
+         * Loads a note, processes it and adds it to the queue. Also handles
+         * addressing and repeats.
+         */
+        void m_loadNote() {
+            uint16_t rawNote = tuneLoader->loadNote(m_noteIndex);
+            DEBUG_D(F("Loading note"));
+            DEBUG_VALUE_H(F("rawNote"), rawNote);
+            // Extract the note and decide what to do next.
+            uint8_t note = (rawNote >> 0x0C) & 0x0F;
+            DEBUG_VALUE_H(F("note"), note);
+            m_NoteData noteData;
+            switch(note) {
+                case NOTE_REPEAT:
+                    // Increase the noteIndex
+                    uint16_t topIndex;
+                    if(!m_repeatsStack.peek(&topIndex) || topIndex != m_noteIndex) {
+                        // We have not seen this repeat before. Add it to the stack and go back.
+                        m_repeatsStack.push(&m_noteIndex);
+                        uint16_t goBackAmount = rawNote & 0x3FF;
+                        uint16_t newAddress = 0;
+                        if(goBackAmount < m_noteIndex) {
+                            // This won't take us back before the start
+                            newAddress = m_noteIndex - goBackAmount;
+                        }
+                        m_noteIndex = newAddress;
+                    } else {
+                        // We have seen this repeat before. Ignore it.
+                        m_repeatsStack.drop(); // Remove the repeat to expose the next.
+                        m_noteIndex++;
+                    }
+                    break;
+
+                case NOTE_SETTING:
+                    // Set the tempo
+                    m_timebase = 2500 / (rawNote & 0x3FF);
+                    m_noteIndex++; // Increase the noteIndex
+                    break;
+
+                case NOTE_END:
+                    // Add a note of frequency 2 to stop playback when reached.
+                    if(rawNote & 0x01) {
+                        // Let's start from the very beginning.
+                        m_noteIndex = 0;
+                    } else {
+                        // Stop playing when reached.
+                        noteData.frequency = FREQ_STOP;
+                        m_notesQueue.push(&noteData);
+                    }
+                    break;
+
+                default: // Actual playable note or a rest
+                    // Get the rest of the note settings
+                    uint8_t octave = (rawNote >> 0x09) & 0x07;
+                    uint8_t length = ((rawNote >> 0x03) & 0x3F) + 1;
+                    uint8_t effect = (rawNote >> 0x01) & 0x03;
+                    uint8_t triplet = rawNote & 0x01;
+
+                    DEBUG_VALUE_H(F("octave"), octave);
+                    DEBUG_VALUE_H(F("length"), length);
+                    DEBUG_VALUE_H(F("effect"), effect);
+                    DEBUG_VALUE_H(F("triplet"), triplet);
+
+                    // Calculate the time to the next note
+                    if(triplet) {
+                        noteData.nextTime = length * 2;
+                    } else {
+                        noteData.nextTime = length * 3;
+                    }
+                    noteData.nextTime *= m_timebase;
+
+                    // Calculate the frequency or set to 0
+                    if(note != NOTE_REST) {
+                        noteData.frequency = m_noteFreq(note, octave);
+                        // Also calculate the time the sound should be on
+                        switch(effect) { //Claculate how much of the total time there should be sound - small gaps between notes.
+                            case EFFECT_LEGARTO:
+                                noteData.playTime = 0;
+                                break;
+                            case EFFECT_STACCATO:
+                                noteData.playTime = noteData.nextTime / 2;
+                                break;
+                            default: //Note plays 7/8 of the time, as suggested by the picaxe manual 2 tune command.
+                                noteData.playTime = noteData.nextTime * 7 / 8;
+                        }
+                    } else {
+                        noteData.frequency = FREQ_REST;
+                    }
+
+                    // Add the note to the queue to play
+                    m_notesQueue.push(&noteData);
+
+                    // Increase the noteIndex
+                    m_noteIndex++;
+            }
+
+        }
+
+        /**
+         * Plays the sound
+         */
+        void m_makeNoise() {
+            // Check if it is the correct time to update the tune
+            if(m_isPlaying && millis()-m_curNoteStart > m_nextNoteTime) {
+                if(!m_notesQueue.isEmpty()) {
+                    // Get the data and play it
+                    m_NoteData noteData;
+                    m_notesQueue.pop(&noteData);
+                    switch(noteData.frequency) {
+                        case FREQ_STOP:
+                            m_isPlaying = false;
+                        case FREQ_REST:
+                            TUNE_OFF; // Stop tune
+                            break;
+                        default:
+                            // Note to play. Play it using the specified method
+                            // TODO: Convert struct to note octave and call class
+#ifdef TUNE_TIMER_1
+                            m_curNoteStop = noteData.playTime;
+#else
+                            if(noteData.playTime) {
+                                // Play for a limited time
+                                tone(pin, noteData.frequency, noteData.playTime);
+                            } else {
+                                // Play without end (legarto)
+                                tone(pin, noteData.frequency);
+                            }
+#endif
+                    }
+
+                    // Set the next time to update
+                    m_nextNoteTime = noteData.nextTime;
+                } else {
+                    // Set to check repeatedly
+                    m_nextNoteTime = 0;
+                }
+                m_curNoteStart = millis();
+            }
+        }
+
+        cppQueue m_notesQueue = cppQueue(sizeof(m_NoteData), NOTES_QUEUE_MAX, FIFO);
+        cppQueue m_repeatsStack = cppQueue(sizeof(uint16_t), REPEATS_MAX_CONCURRENT, LIFO);
+        uint16_t m_noteIndex = 0;
+        uint16_t m_timebase = 20;
+        uint16_t m_nextNoteTime = 0;
+        uint32_t m_curNoteStart = 0;
+        bool m_isPlaying = false;
+
+        // Only needed if the time has to be stopped manually
+#ifdef TUNE_TIMER_1
+        uint16_t m_curNoteStop = 0;
+#endif
+};
