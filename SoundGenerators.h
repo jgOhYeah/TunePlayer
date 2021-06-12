@@ -8,12 +8,16 @@
  * Written by Jotham Gates, 12/06/2021
  */
 
+#include <Arduino.h>
+
 /**
  * Abstract class to play a sound
  */
 class SoundGenerator {
     public:
         SoundGenerator() {}
+
+        virtual void begin() {}
 
         /**
          * Plays a note. If playTime is non zero, may automatically stop playing
@@ -36,7 +40,7 @@ class ToneSound : public SoundGenerator {
          * Plays a given note for a given (optional) time
          */
         void playNote(uint8_t note, uint8_t octave, uint32_t playTime=0) {
-            uint16_t freq = m_frequency(note, octave)
+            uint16_t freq = m_frequency(note, octave);
             if(playTime) {
                 // Time given
                 tone(m_pin, freq, playTime);
@@ -93,7 +97,7 @@ class TimerOneSound : public SoundGenerator {
             // Setup non inverting mode (duty cycle is sensible), fast pwm mode 14 on PB1 (Pin 9)
             TCCR1A = (1 << COM1A1) | (1 << WGM11);
             TCCR1B = (1 << WGM12) | (1 << WGM13) | (1 << CS11); // With prescalar 8 (with a clock frequency of 16MHz, can get all notes required)
-            ICR1 = m_counterTop(); // Maximum to count to
+            ICR1 = m_counterTop(note, octave); // Maximum to count to
             OCR1A = m_compareValue(ICR1); // Duty cycle
         }
 
@@ -109,7 +113,7 @@ class TimerOneSound : public SoundGenerator {
         /** Returns the maximum value for timer 1 to count to for each note. */
         uint16_t m_counterTop(uint8_t note, uint8_t octave) {
             // Notes for octave 0 (real life 2 I think) - divide by 2 for each octave higher
-            const uint16_t noteCounts = {61155, 57723, 54483, 51425, 48539, 45814, 43243, 40816, 38525, 36363, 34322, 32395};
+            const uint16_t noteCounts[] = {61155, 57723, 54483, 51425, 48539, 45814, 43243, 40816, 38525, 36363, 34322, 32395};
             return noteCounts[note] >> octave;
         }
 

@@ -7,7 +7,7 @@
 #pragma once
 #include <Arduino.h>
 #include <cppQueue.h>
-
+#include "SoundGenerators.h"
 #include "TuneLoaders.h"
 // TODO: Use microseconds?
 
@@ -55,9 +55,11 @@ class TunePlayer {
         /**
          * Initialises the library with the given parameters
          */
-        void begin(BaseTuneLoader *newTuneLoader, SoundGenerator newSoundGenerator) {
+        void begin(BaseTuneLoader *newTuneLoader, SoundGenerator *newSoundGenerator) {
             tuneLoader = newTuneLoader;
             soundGenerator = newSoundGenerator;
+
+            soundGenerator->begin();
         }
 
         /**
@@ -138,12 +140,9 @@ class TunePlayer {
          */
         void m_loadNote() {
             uint16_t rawNote = tuneLoader->loadNote(m_noteIndex);
-            DEBUG_D(F("Loading note"));
-            DEBUG_VALUE_H(F("rawNote"), rawNote);
             // Extract the note and decide what to do next.
             m_NoteData noteData;
             noteData.note = (rawNote >> 0x0C) & 0x0F;
-            DEBUG_VALUE_H(F("note"), note);
             switch(noteData.note) {
                 case NOTE_REPEAT:
                     // Increase the noteIndex
@@ -188,11 +187,6 @@ class TunePlayer {
                     uint8_t length = ((rawNote >> 0x03) & 0x3F) + 1;
                     uint8_t effect = (rawNote >> 0x01) & 0x03;
                     uint8_t triplet = rawNote & 0x01;
-
-                    DEBUG_VALUE_H(F("octave"), octave);
-                    DEBUG_VALUE_H(F("length"), length);
-                    DEBUG_VALUE_H(F("effect"), effect);
-                    DEBUG_VALUE_H(F("triplet"), triplet);
 
                     // Calculate the time to the next note
                     if(triplet) {
