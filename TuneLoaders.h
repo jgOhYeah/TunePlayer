@@ -8,6 +8,9 @@
  * Written by Jotham Gates, 12/06/2021
  */
 
+#pragma once
+#include <Arduino.h>
+
 /**
  * Abstract class to load a note from memory.
  * Each memory / tune source should inherit this class.

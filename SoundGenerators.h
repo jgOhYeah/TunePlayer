@@ -8,6 +8,7 @@
  * Written by Jotham Gates, 12/06/2021
  */
 
+#pragma once
 #include <Arduino.h>
 
 /**

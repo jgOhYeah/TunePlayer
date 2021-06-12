@@ -42,10 +42,6 @@
 #define EFFECT_STACCATO 1
 #define EFFECT_LEGARTO 2
 
-// Frequencies with special meaning
-#define FREQ_REST 0
-#define FREQ_STOP 1
-
 /**
  * Main tune playing class
  */
@@ -62,6 +58,10 @@ class TunePlayer {
             soundGenerator->begin();
         }
 
+        void begin() {
+            soundGenerator->begin();
+        }
+
         /**
          * Fills up the queue.
          */
@@ -75,7 +75,7 @@ class TunePlayer {
          * Starts to play the tune
          */
         void play() {
-            m_isPlaying = true;
+            isPlaying = true;
         }
 
         /**
@@ -89,7 +89,7 @@ class TunePlayer {
 
             // High priority
 #ifdef MANUAL_CUTOFF
-            if(m_isPlaying && m_curNoteStop && millis()-m_curNoteStart > m_curNoteStop) {
+            if(isPlaying && m_curNoteStop && millis()-m_curNoteStart > m_curNoteStop) {
                 soundGenerator->stopSound();
             }
 #endif
@@ -105,7 +105,7 @@ class TunePlayer {
             if(!holdNote) {
                 soundGenerator->stopSound();
             }
-            m_isPlaying = false;
+            isPlaying = false;
         }
 
         /**
@@ -114,7 +114,7 @@ class TunePlayer {
          */
         void stop() {
             soundGenerator->stopSound();
-            m_isPlaying = false;
+            isPlaying = false;
             m_notesQueue.flush();
             m_noteIndex = 0;
             m_nextNoteTime = 0; // So play will work immediately
@@ -122,6 +122,7 @@ class TunePlayer {
 
         BaseTuneLoader *tuneLoader;
         SoundGenerator *soundGenerator;
+        bool isPlaying = false;
 
     private:
         /**
@@ -226,14 +227,14 @@ class TunePlayer {
          */
         void m_makeNoise() {
             // Check if it is the correct time to update the tune
-            if(m_isPlaying && millis()-m_curNoteStart > m_nextNoteTime) {
+            if(isPlaying && millis()-m_curNoteStart > m_nextNoteTime) {
                 if(!m_notesQueue.isEmpty()) {
                     // Get the data and play it
                     m_NoteData noteData;
                     m_notesQueue.pop(&noteData);
                     switch(noteData.note) {
                         case NOTE_END:
-                            m_isPlaying = false;
+                            isPlaying = false;
                         case NOTE_REST:
                             soundGenerator->stopSound();
                             break;
@@ -261,7 +262,6 @@ class TunePlayer {
         uint16_t m_timebase = 20;
         uint16_t m_nextNoteTime = 0;
         uint32_t m_curNoteStart = 0;
-        bool m_isPlaying = false;
 
         // Only needed if the time has to be stopped manually
 #ifdef MANUAL_CUTOFF
