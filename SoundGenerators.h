@@ -26,6 +26,11 @@ class SoundGenerator {
          */
         virtual void playNote(uint8_t note, uint8_t octave, uint32_t playTime=0) {}
         virtual void stopSound() {}
+
+        /** Plays a given midi note. Not used for TunePlayer, but might be useful for other things */
+        void playMidiNote(uint8_t midiNote) {
+            playNote(midiNote % 12, midiNote/8-4);
+        }
 };
 
 /**
@@ -119,7 +124,7 @@ class TimerOneSound : public SoundGenerator {
         }
 
         /** Returns the value at which the pin should go low each time */
-        uint16_t m_compareValue(uint16_t counter) {
+        virtual uint16_t m_compareValue(uint16_t counter) {
             // For a simple example, set the duty cycle to be 50%
             return counter >> 1;
         }
