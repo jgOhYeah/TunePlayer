@@ -2,6 +2,9 @@
  * TuneLoaders.h
  * Helpers classes for TunePlayer that help with playing the sound.
  * 
+ * Each class should inherit SoundGenerator and implement at least the playNote
+ * and stopSound methods.
+ * 
  * Written by Jotham Gates, 12/06/2021
  */
 
@@ -16,7 +19,8 @@ class SoundGenerator {
          * Plays a note. If playTime is non zero, may automatically stop playing
          * if supported.
          */
-        virtual void playNote(uint8_t note, uint8_t octave, uint32_t playTime=0)
+        virtual void playNote(uint8_t note, uint8_t octave, uint32_t playTime=0) {}
+        virtual void stopSound() {}
 };
 
 /**
@@ -41,11 +45,14 @@ class ToneSound : public SoundGenerator {
                 tone(m_pin, freq);
             }
         }
-        // TODO: Stop
+
+        /** Stops making noises */
+        void stopNote() {
+            noTone(m_pin);
+        }
+
     private:
-        /**
-         * Calculates the frequency a note in a certain octave should be.
-         */
+        /** Calculates the frequency a note in a certain octave should be. */
         uint16_t m_frequency(uint8_t note, uint8_t octave) {
 #ifdef PRECISE_FREQS
             const uint16_t noteFrequencies[8][12] { // TODO: Could store in progmem
@@ -76,23 +83,39 @@ class TimerOneSound : public SoundGenerator {
     public:
         TimerOneSound() {}
 
+        /** Sets the pin as an output */
         void begin() {
             DDRB |= (1 << PB1); // Set PB1 to be an output (Pin9 Arduino UNO)
         }
 
-        /**
-         * Plays a given note. playTime is ignored.
-         */
-        void playNote(uint8_t note, uint8_t octave, uint32_t playTime=0, uint8_t dutyCycle=127) {
+        /** Plays a given note. playTime is ignored. */
+        void playNote(uint8_t note, uint8_t octave, uint32_t playTime=0) {
             // Setup non inverting mode (duty cycle is sensible), fast pwm mode 14 on PB1 (Pin 9)
             TCCR1A = (1 << COM1A1) | (1 << WGM11);
             TCCR1B = (1 << WGM12) | (1 << WGM13) | (1 << CS11); // With prescalar 8 (with a clock frequency of 16MHz, can get all notes required)
             ICR1 = m_counterTop(); // Maximum to count to
-            OCR1A = ICR1 * dutyCycle / 255; // Duty cycle
+            OCR1A = m_compareValue(ICR1); // Duty cycle
         }
-        // TODO: Stop
+
+        /** Stops making a noise */
+        void stopSound() {
+            // Shutdown timer
+            TCCR1A = 0;
+            TCCR1B = 0;
+            PORTD &= ~(1 << PB1); // Set pin low just in case it is left high (not sure if needed)
+        }
+
     private:
+        /** Returns the maximum value for timer 1 to count to for each note. */
         uint16_t m_counterTop(uint8_t note, uint8_t octave) {
-            // TODO:
+            // Notes for octave 0 (real life 2 I think) - divide by 2 for each octave higher
+            const uint16_t noteCounts = {61155, 57723, 54483, 51425, 48539, 45814, 43243, 40816, 38525, 36363, 34322, 32395};
+            return noteCounts[note] >> octave;
+        }
+
+        /** Returns the value at which the pin should go low each time */
+        uint16_t m_compareValue(uint16_t counter) {
+            // For a simple example, set the duty cycle to be 50%
+            return counter >> 1;
         }
 };

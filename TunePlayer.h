@@ -3,17 +3,18 @@
  * Class for playing tunes from a compressed 16 bit format.
  * Written by Jotham Gates, 12/06/2021
  */
+
 #pragma once
 #include <Arduino.h>
 #include <cppQueue.h>
 
 #include "TuneLoaders.h"
-// TODO: Convert playing to another class
 // TODO: Use microseconds?
-// TODO: Use ifdef for shutting up if needed
 
-#define TUNE_TIMER_1 // Use timer1 on pins 3 or 9 instead of tone. Allows the duty cycle to be set, but less portable.
+
 // #define PRECISE_FREQS // If using tone and not timer 1, store the required frequency for each note rather than one octave and caculating it. Might be a bit more correct, but more memory.
+// #define MANUAL_CUTOFF // Define this if the SoundGenerator cannot stop playing automatically (TimerOneSound for instance)
+
 #define NOTES_QUEUE_MAX 4
 #define NOTES_QUEUE_MIN_TARGET 2
 #define REPEATS_MAX_CONCURRENT 8
@@ -44,13 +45,6 @@
 // Frequencies with special meaning
 #define FREQ_REST 0
 #define FREQ_STOP 1
-
-// Macro to stop playing
-#ifdef TUNE_TIMER_1
-                #define TUNE_OFF TCCR1A = 0; TCCR1B = 0 // Disable timer and set the pin as an input // TODO: Check the pin isn't left in the "HIGH" state
-#else
-                #define TUNE_OFF noTone(pin)
-#endif
 
 /**
  * Main tune playing class
@@ -87,11 +81,14 @@ class TunePlayer {
          * playback.
          */
         void update() {
-            spool();
-            m_makeNoise();
-#ifdef TUNE_TIMER_1
+            // Could break these into high and low priority tasks?
+            spool(); // Low priority
+            m_makeNoise(); // High priority
+
+            // High priority
+#ifdef MANUAL_CUTOFF
             if(m_isPlaying && m_curNoteStop && millis()-m_curNoteStart > m_curNoteStop) {
-                TUNE_OFF;
+                soundGenerator->stopSound();
             }
 #endif
         }
@@ -104,7 +101,7 @@ class TunePlayer {
          */
         void pause(bool holdNote = false) {
             if(!holdNote) {
-                TUNE_OFF;
+                soundGenerator->stopSound();
             }
             m_isPlaying = false;
         }
@@ -114,7 +111,7 @@ class TunePlayer {
          * to the start. If play is called, the tune restarts from the beginning.
          */
         void stop() {
-            TUNE_OFF;
+            soundGenerator->stopSound();
             m_isPlaying = false;
             m_notesQueue.flush();
             m_noteIndex = 0;
@@ -129,7 +126,8 @@ class TunePlayer {
          * Struct for processed note data to be given to the player.
          */
         struct m_NoteData {
-            uint16_t frequency;
+            uint8_t note;
+            uint8_t octave;
             uint16_t playTime;
             uint16_t nextTime;
         };
@@ -143,10 +141,10 @@ class TunePlayer {
             DEBUG_D(F("Loading note"));
             DEBUG_VALUE_H(F("rawNote"), rawNote);
             // Extract the note and decide what to do next.
-            uint8_t note = (rawNote >> 0x0C) & 0x0F;
-            DEBUG_VALUE_H(F("note"), note);
             m_NoteData noteData;
-            switch(note) {
+            noteData.note = (rawNote >> 0x0C) & 0x0F;
+            DEBUG_VALUE_H(F("note"), note);
+            switch(noteData.note) {
                 case NOTE_REPEAT:
                     // Increase the noteIndex
                     uint16_t topIndex;
@@ -179,15 +177,14 @@ class TunePlayer {
                         // Let's start from the very beginning.
                         m_noteIndex = 0;
                     } else {
-                        // Stop playing when reached.
-                        noteData.frequency = FREQ_STOP;
+                        // Stop playing when reached. noteData.note is already set
                         m_notesQueue.push(&noteData);
                     }
                     break;
 
                 default: // Actual playable note or a rest
                     // Get the rest of the note settings
-                    uint8_t octave = (rawNote >> 0x09) & 0x07;
+                    noteData.octave = (rawNote >> 0x09) & 0x07;
                     uint8_t length = ((rawNote >> 0x03) & 0x3F) + 1;
                     uint8_t effect = (rawNote >> 0x01) & 0x03;
                     uint8_t triplet = rawNote & 0x01;
@@ -206,8 +203,8 @@ class TunePlayer {
                     noteData.nextTime *= m_timebase;
 
                     // Calculate the frequency or set to 0
-                    if(note != NOTE_REST) {
-                        noteData.frequency = m_noteFreq(note, octave);
+                    if(noteData.note != NOTE_REST) {
+                        // Octave and note are already set
                         // Also calculate the time the sound should be on
                         switch(effect) { //Claculate how much of the total time there should be sound - small gaps between notes.
                             case EFFECT_LEGARTO:
@@ -219,8 +216,6 @@ class TunePlayer {
                             default: //Note plays 7/8 of the time, as suggested by the picaxe manual 2 tune command.
                                 noteData.playTime = noteData.nextTime * 7 / 8;
                         }
-                    } else {
-                        noteData.frequency = FREQ_REST;
                     }
 
                     // Add the note to the queue to play
@@ -242,26 +237,18 @@ class TunePlayer {
                     // Get the data and play it
                     m_NoteData noteData;
                     m_notesQueue.pop(&noteData);
-                    switch(noteData.frequency) {
-                        case FREQ_STOP:
+                    switch(noteData.note) {
+                        case NOTE_END:
                             m_isPlaying = false;
-                        case FREQ_REST:
-                            TUNE_OFF; // Stop tune
+                        case NOTE_REST:
+                            soundGenerator->stopSound();
                             break;
                         default:
                             // Note to play. Play it using the specified method
-                            // TODO: Convert struct to note octave and call class
-#ifdef TUNE_TIMER_1
+#ifdef MANUAL_CUTOFF
                             m_curNoteStop = noteData.playTime;
-#else
-                            if(noteData.playTime) {
-                                // Play for a limited time
-                                tone(pin, noteData.frequency, noteData.playTime);
-                            } else {
-                                // Play without end (legarto)
-                                tone(pin, noteData.frequency);
-                            }
 #endif
+                            soundGenerator->playNote(noteData.note, noteData.octave, noteData.playTime);
                     }
 
                     // Set the next time to update
@@ -283,7 +270,7 @@ class TunePlayer {
         bool m_isPlaying = false;
 
         // Only needed if the time has to be stopped manually
-#ifdef TUNE_TIMER_1
+#ifdef MANUAL_CUTOFF
         uint16_t m_curNoteStop = 0;
 #endif
 };
