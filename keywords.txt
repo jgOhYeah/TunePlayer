@@ -1,0 +1,32 @@
+# Syntax Coloring Map For TunePlayer
+
+# Datatypes (KEYWORD1)
+TunePlayer	KEYWORD1
+SoundGenerator	KEYWORD1
+TimerOneSound	KEYWORD1
+ToneSound	KEYWORD1
+BaseTuneLoader	KEYWORD1
+FlashTuneLoader	KEYWORD1
+EEPROMTuneLoader	KEYWORD1
+
+# Methods and Functions (KEYWORD2)
+isPlaying	KEYWORD2
+begin	KEYWORD2
+spool	KEYWORD2
+play	KEYWORD2
+pause	KEYWORD2
+stop	KEYWORD2
+update	KEYWORD2
+
+playNote	KEYWORD2
+stopSound	KEYWORD2
+playMidiNote	KEYWORD2
+
+loadNote	KEYWORD2
+setTune	KEYWORD2
+setStart	KEYWORD2
+
+# Instances	(KEYWORD2)
+
+# Constants	(LITERAL1)
+MANUAL_CUTOFF	LITERAL1

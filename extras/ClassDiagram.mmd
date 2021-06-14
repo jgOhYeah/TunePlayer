@@ -1,0 +1,77 @@
+classDiagram
+    BaseTuneLoader <|-- FlashTuneLoader
+    BaseTuneLoader <|-- EEPROMTuneLoader
+    SoundGenerator <|-- ToneSound
+    SoundGenerator <|-- TimerOneSound
+    TunePlayer "1" --> "1" BaseTuneLoader
+    TunePlayer "1" --> "1" SoundGenerator
+    TunePlayer "1" --> "1" cppQueue
+    TunePlayer "1" *.. "0..*" m_NoteData
+
+    class BaseTuneLoader {
+        <<abstract>>
+        +loadNote(uint16_t address)* uint16_t
+    }
+
+    class FlashTuneLoader {
+        +setTune(uint16_t *tune)
+        +loadNote(uint16_t address) uint16_t
+    }
+
+    class EEPROMTuneLoader {
+        +setStart(uint16_t start)
+        +loadNote(uint16_t address) uint16_t
+    }
+
+    class SoundGenerator {
+        <<absract>>
+        +playNote(uint8_t note, uint8_t octave, uint32_t playTime=0)
+        +stopSound()
+    }
+
+    class ToneSound {
+        +ToneSound(uint8_t pin)
+        +playNote(uint8_t note, uint8_t octave, uint32_t playTime=0)
+        +stopSound()
+        -m_frequency(uint8_t note, uint8_t octave) uint16_t
+        -m_pin
+    }
+
+    class TimerOneSound {
+        uint8_t dutyCycle=127
+        +playNote(uint8_t note, uint8_t octave, uint32_t playTime=0)
+        +playMidiNote(uint8_t note)
+        +stopSound()
+        -m_counterTop(uint8_t note, uint8_t octave) uint16_t
+        -m_compareValue(uint16_t counter) uint16_t
+    }
+
+    class TunePlayer {
+        +BaseTuneLoader tuneLoader
+        +SoundGenerator soundGenerator
+        +bool isPlaying
+        -Queue~_NoteData~ m_notesQueue
+        -Queue~uint16_t~ m_repeatsStack
+        -uint16_t m_noteAddress
+        -uint16_t m_timebase
+        -uint16_t m_nextNoteTime
+        -uint32_t m_curNoteStart
+        -uint16_t m_curNoteStop
+        +TunePlayer()
+        +begin(BaseTuneLoader *newTuneSource, SoundGenerator *newSoundGenerator)
+        +begin()
+        +spool()
+        +play()
+        +pause()
+        +stop()
+        +update()
+        -m_makeNoise()
+    }
+
+    class m_NoteData {
+        <<private>>
+        +uint8_t note
+        +uint8_t octave
+        +uint16_t playTime
+        +uint16_t nextTime
+    }
