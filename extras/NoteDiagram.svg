@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="532"
+   height="86.834801"
+   viewBox="0 0 140.75834 22.975042"
+   version="1.1"
+   id="svg5"
+   inkscape:version="1.1 (1:1.1+202105261517+ce6663b3b7)"
+   sodipodi:docname="NoteDiagram.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="1"
+     inkscape:pagecheckerboard="0"
+     inkscape:document-units="px"
+     showgrid="true"
+     inkscape:snap-bbox="true"
+     inkscape:snap-page="true"
+     inkscape:bbox-paths="true"
+     inkscape:bbox-nodes="true"
+     inkscape:snap-bbox-edge-midpoints="false"
+     inkscape:snap-bbox-midpoints="false"
+     showguides="true"
+     units="px"
+     width="600px"
+     inkscape:object-paths="true"
+     inkscape:zoom="1.83432"
+     inkscape:cx="273.39831"
+     inkscape:cy="9.2677394"
+     inkscape:window-width="1318"
+     inkscape:window-height="712"
+     inkscape:window-x="48"
+     inkscape:window-y="27"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1"
+     inkscape:guide-bbox="true"
+     inkscape:snap-object-midpoints="false"
+     fit-margin-top="10"
+     fit-margin-left="10"
+     fit-margin-right="10"
+     fit-margin-bottom="10">
+    <inkscape:grid
+       type="xygrid"
+       id="grid9"
+       empspacing="5"
+       enabled="false"
+       originx="-2.38125"
+       originy="0.26458341" />
+    <sodipodi:guide
+       position="4.1893932,3.298471"
+       orientation="0,-1"
+       id="guide86838" />
+  </sodipodi:namedview>
+  <defs
+     id="defs2">
+    <rect
+       x="30"
+       y="110"
+       width="501.30002"
+       height="26.357302"
+       id="rect7775" />
+  </defs>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-2.38125,0.26458351)">
+    <rect
+       style="fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0.483257;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect101361"
+       width="140.75835"
+       height="22.975042"
+       x="2.3812499"
+       y="-0.2645835" />
+    <rect
+       style="fill:none;fill-opacity:0.3672;stroke:#000000;stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect33"
+       width="134.9375"
+       height="13.229167"
+       x="5.2916665"
+       y="2.6458333" />
+    <text
+       xml:space="preserve"
+       transform="matrix(0.26458333,0,0,0.26458333,-0.34395756,-22.848702)"
+       id="text7773"
+       style="font-style:normal;font-weight:normal;font-size:19.3333px;line-height:1.25;font-family:sans-serif;letter-spacing:6.35px;white-space:pre;shape-inside:url(#rect7775);fill:#000000;fill-opacity:1;stroke:none"><tspan
+         x="30"
+         y="128.03202"
+         id="tspan119766"><tspan
+           style="font-style:italic;font-family:'Ubuntu Mono';-inkscape-font-specification:'Ubuntu Mono Italic'"
+           id="tspan119764">n n n n o o o l l l l l l e e t</tspan></tspan></text>
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.529167;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="M 38.492886,2.6458333 V 15.875"
+       id="path73613" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.529167;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="M 64.177801,2.6458333 V 15.875"
+       id="path73613-7" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.529167;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="M 131.94159,2.6458333 V 15.875"
+       id="path73615" />
+    <text
+       xml:space="preserve"
+       style="font-size:3.52777px;line-height:1.25;font-family:Ubuntu;-inkscape-font-specification:Ubuntu;stroke-width:0.264583"
+       x="6.2672548"
+       y="19.366127"
+       id="text85764"><tspan
+         sodipodi:role="line"
+         id="tspan85762"
+         style="stroke-width:0.264583"
+         x="6.2672548"
+         y="19.366127">Note</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:3.52777px;line-height:1.25;font-family:Ubuntu;-inkscape-font-specification:Ubuntu;stroke-width:0.264583"
+       x="40.487995"
+       y="19.366125"
+       id="text85764-1"><tspan
+         sodipodi:role="line"
+         id="tspan85762-3"
+         style="stroke-width:0.264583"
+         x="40.487995"
+         y="19.366125">Octave</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:3.52777px;line-height:1.25;font-family:Ubuntu;-inkscape-font-specification:Ubuntu;stroke-width:0.264583"
+       x="129.32372"
+       y="19.411987"
+       id="text96734"><tspan
+         sodipodi:role="line"
+         id="tspan96732"
+         style="stroke-width:0.264583"
+         x="129.32372"
+         y="19.411987">Triplet</tspan></text>
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.529167;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="M 115.15578,2.6458333 V 15.875"
+       id="path73613-6" />
+    <text
+       xml:space="preserve"
+       style="font-size:3.52777px;line-height:1.25;font-family:Ubuntu;-inkscape-font-specification:Ubuntu;stroke-width:0.264583"
+       x="66.479935"
+       y="19.411989"
+       id="text111651"><tspan
+         sodipodi:role="line"
+         id="tspan111649"
+         style="stroke-width:0.264583"
+         x="66.479935"
+         y="19.411989">Length</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:3.52777px;line-height:1.25;font-family:Ubuntu;-inkscape-font-specification:Ubuntu;stroke-width:0.264583"
+       x="117.01809"
+       y="19.411989"
+       id="text116495"><tspan
+         sodipodi:role="line"
+         id="tspan116493"
+         style="stroke-width:0.264583"
+         x="117.01809"
+         y="19.411989">Effect</tspan></text>
+  </g>
+</svg>
