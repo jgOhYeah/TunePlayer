@@ -216,7 +216,7 @@ MuseScore {
             console.log(note);
             if (notePitchInput < 128) { //It makes sound
                   var notePitch = notePitchInput % 12;
-                  var noteOctave = Math.floor(notePitchInput / 8) - 4; // -2 to get high enough
+                  var noteOctave = Math.floor(notePitchInput / 12) - 2; // 2 * 12 is midi note 24 start
 
             } else {
                   var notePitch = 12; //Rest

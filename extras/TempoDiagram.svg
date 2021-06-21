@@ -34,8 +34,8 @@
      width="600px"
      inkscape:object-paths="true"
      inkscape:zoom="1.83432"
-     inkscape:cx="273.39831"
-     inkscape:cy="9.2677394"
+     inkscape:cx="273.39832"
+     inkscape:cy="9.2677395"
      inkscape:window-width="1318"
      inkscape:window-height="712"
      inkscape:window-x="48"
@@ -68,6 +68,12 @@
        width="501.30002"
        height="26.357302"
        id="rect7775" />
+    <rect
+       x="30"
+       y="110"
+       width="501.30002"
+       height="26.357302"
+       id="rect7775-3" />
   </defs>
   <g
      inkscape:label="Layer 1"
@@ -95,9 +101,21 @@
        style="font-style:normal;font-weight:normal;font-size:19.3333px;line-height:1.25;font-family:sans-serif;letter-spacing:6.35px;white-space:pre;shape-inside:url(#rect7775);fill:#000000;fill-opacity:1;stroke:none"><tspan
          x="30"
          y="128.03202"
-         id="tspan152042"><tspan
+         id="tspan21501"><tspan
+           style="font-family:'Ubuntu Mono';-inkscape-font-specification:'Ubuntu Mono'"
+           id="tspan21497">1 1 1 0</tspan><tspan
            style="font-style:italic;font-family:'Ubuntu Mono';-inkscape-font-specification:'Ubuntu Mono Italic'"
-           id="tspan152040">1 1 1 0 f f s s s s s s s s s s </tspan></tspan></text>
+           id="tspan21499">     s s s s s s s s s s </tspan></tspan></text>
+    <text
+       xml:space="preserve"
+       transform="matrix(0.26458333,0,0,0.26458333,0.12664717,-22.782204)"
+       id="text7773-6"
+       style="font-style:italic;font-weight:normal;font-size:19.3333px;line-height:1.25;font-family:'Ubuntu Mono';letter-spacing:6.35px;white-space:pre;shape-inside:url(#rect7775-3);fill:#666666;fill-opacity:1;stroke:none;-inkscape-font-specification:'Ubuntu Mono Italic';font-stretch:normal;font-variant:normal"><tspan
+         x="30"
+         y="128.03202"
+         id="tspan21505">        <tspan
+   style="fill:#4d4d4d"
+   id="tspan21503">f f</tspan> </tspan></text>
     <path
        style="fill:none;stroke:#000000;stroke-width:0.529167;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        d="M 38.492886,2.6458333 V 15.875"
@@ -125,7 +143,7 @@
        id="text85764-1"><tspan
          sodipodi:role="line"
          id="tspan85762-3"
-         style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:Ubuntu;-inkscape-font-specification:'Ubuntu Italic';fill:#808080;stroke-width:0.264583"
+         style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:Ubuntu;-inkscape-font-specification:'Ubuntu Italic';fill:#4d4d4d;stroke-width:0.264583"
          x="40.487995"
          y="19.366125">Effect (todo)</tspan></text>
     <text

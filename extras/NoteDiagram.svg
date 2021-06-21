@@ -34,8 +34,8 @@
      width="600px"
      inkscape:object-paths="true"
      inkscape:zoom="1.83432"
-     inkscape:cx="273.39831"
-     inkscape:cy="9.2677394"
+     inkscape:cx="273.39832"
+     inkscape:cy="9.2677395"
      inkscape:window-width="1318"
      inkscape:window-height="712"
      inkscape:window-x="48"
@@ -95,9 +95,9 @@
        style="font-style:normal;font-weight:normal;font-size:19.3333px;line-height:1.25;font-family:sans-serif;letter-spacing:6.35px;white-space:pre;shape-inside:url(#rect7775);fill:#000000;fill-opacity:1;stroke:none"><tspan
          x="30"
          y="128.03202"
-         id="tspan119766"><tspan
+         id="tspan78"><tspan
            style="font-style:italic;font-family:'Ubuntu Mono';-inkscape-font-specification:'Ubuntu Mono Italic'"
-           id="tspan119764">n n n n o o o l l l l l l e e t</tspan></tspan></text>
+           id="tspan76">n n n n o o o l l l l l l e e t</tspan></tspan></text>
     <path
        style="fill:none;stroke:#000000;stroke-width:0.529167;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        d="M 38.492886,2.6458333 V 15.875"
@@ -157,7 +157,7 @@
          id="tspan111649"
          style="stroke-width:0.264583"
          x="66.479935"
-         y="19.411989">Length</tspan></text>
+         y="19.411989">Length - 1</tspan></text>
     <text
        xml:space="preserve"
        style="font-size:3.52777px;line-height:1.25;font-family:Ubuntu;-inkscape-font-specification:Ubuntu;stroke-width:0.264583"

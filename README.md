@@ -10,3 +10,5 @@ Have a look at the examples and class diagram in extras to get started.
 - [Musescore Plugin](extras/MusescorePlugin.md)
 - [API Reference](extras/API.md)
 - [Note structure](extras/NoteStructure.md)
+
+This library is inspired (but not compatible with) the [PICAXE tune command](https://picaxe.com/basic-commands/digital-inputoutput/tune/)

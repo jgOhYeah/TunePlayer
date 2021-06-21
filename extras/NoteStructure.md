@@ -7,18 +7,130 @@ Each note or instruction is a 16 bit (2 byte) integer. There are currently 4 mai
 
 Notes are stored in an array. Where and how this array is stored is flexible and can be changed by using a different loader class.
 
+[This](https://newt.phys.unsw.edu.au/jw/notes.html) is a useful website on midi notes and frequencies.
+
+In general in the diagrams below, `1` represents an always on, true, 1, high... bit, `0` represents an always off, false, 0, low... bit and `*` does not matter and is currently not used. See the description below each diagram for italic letters.
+
 ## Notes and rests
 ![Diagram of meaning of bits in a note message](NoteDiagram.svg)
-TODO: Describe
+
+
+<details>
+  <summary>Note (<i>n</i>)</summary>
+A 4 bit number representing the note.
+
+|         Note          | Number |  Binary  |
+|:---------------------:|:------:|:--------:|
+|           C           |   0    | `0b0000` |
+|       C&#x266f;       |   1    | `0b0001` |
+|           D           |   2    | `0b0010` |
+| D&#x266f; / E&#x266d; |   3    | `0b0011` |
+|           E           |   4    | `0b0100` |
+|           F           |   5    | `0b0101` |
+| F&#x266f; / G&#x266d; |   6    | `0b0110` |
+|           G           |   7    | `0b0111` |
+| G&#x266f; / A&#x266d; |   8    | `0b1000` |
+|           A           |   9    | `0b1001` |
+| A&#x266f; / B&#x266d; |   10   | `0b1010` |
+|           B           |   11   | `0b1011` |
+|         Rest          |   12   | `0b1100` |
+
+A midi note (0-127) can be converted to a note using
+
+<p align="center"><i>note = midi % 12</i></p>
+</details>
+
+<details>
+  <summary>Octave (<i>o</i>)</summary>
+A 3 bit number representing the octave.
+
+| Octave | Binary  | Note Range |
+|:------:|:-------:|:----------:|
+|   0    | `0b000` |  C1 - B1   |
+|   1    | `0b001` |  C2 - B2   |
+|   2    | `0b010` |  C3 - B3   |
+|   3    | `0b011` |  C4 - B4   |
+|   4    | `0b100` |  C5 - B5   |
+|   5    | `0b101` |  C6 - B6   |
+|   6    | `0b110` |  C7 - B7   |
+|   7    | `0b111` |  C8 - B8   |
+
+A midi note (0-127) can be converted to an octave using
+<p align="center"><i>octave = </i>floor<i>(midi / 12) - 2</i></p>
+</details>
+
+<details>
+  <summary>Length (<i>l</i>)</summary>
+A 6 bit number representing the length of the note.
+
+By default, the length is the number of *1/8<sup>th</sup>* beats *-1*. For example, a crotchet (*1/4* note) is *8/8* beats, so in this case the length would be *7*.
+
+If the triplet mode bit is set, the length is now interpreted as the number of *1/12<sup>th</sup>* beats, allowing correct triplets to be represented.
+</details>
+
+<details>
+  <summary>Effect (<i>e</i>)</summary>
+<b>
+TODO:</b> This is still a work in progress. While it is implemented in the Arduino library, it is not in the Musescore plugin.
+
+Two bits for effects such as staccarto and legato notes.
+
+| Effect number | Binary |       Effect       | Fraction of note time played |
+|:-------------:|:------:|:------------------:|:----------------------------:|
+|       0       | `0b00` |        None        |           *7/8*\*            |
+|       1       | `0b01` |      Staccato      |            *1/2*             |
+|       2       | `0b10` |       Legato       |          Full time           |
+|       3       | `0b11` | *Currently unused* |              -               |
+
+\* According to the [PICAXE manual 2](https://picaxe.com/getting-started/picaxe-manuals/), *7/8* is the standard time for electronic music. From experimenting, attempting to play all notes for the full time just sounds weird and ties repeated notes.
+
+</details>
+
+<details>
+  <summary>Triplet mode (<i>t</i>)</summary>
+
+If this is 0 (off), the length is interpreted as being in *1/8<sup>th</sup>* beats. If this is 1 (on), the length is interpreted as being in *1/12<sup>th</sup>* beats.
+
+</details>
 
 ## Repeats
 ![Diagram of meaning of bits in a repeat message](RepeatDiagram.svg)
-TODO: Describe
+
+<details>
+  <summary>Number of repeats (todo) (<i>i</i>)</summary>
+
+Not currently implemented. Currently repeats once.
+</details>
+
+<details>
+  <summary>Number of messages to go back (<i>j</i>)</summary>
+
+The number of messages to go back.
+</details>
 
 ## Tempo setting
 ![Diagram of meaning of bits in a set tempo message](TempoDiagram.svg)
-TODO: Describe
+
+<details>
+  <summary>Effect (todo) (<i>f</i>)</summary>
+
+Not currently implemented
+</details>
+
+<details>
+  <summary>Tempo (<i>s</i>)</summary>
+
+A 10 bit number representing the tempo in beats per minute / 2. Double this for the actual tempo.
+
+<b>
+TODO:</b> Make this divided by one or carve out some bits to be used for some more settings, possibly pitch bend?
+</details>
 
 ## End of tune
 ![Diagram of meaning of bits in a tune end message](TuneEndDiagram.svg)
+
+<details>
+  <summary>Start over (<i>a</i>)</summary>
+
 If the least significant bit, *a*, is 1, the tune will be repeated from the beginning. If this bit is a 0, the library will stop playing when it reaches the end.
+</details>

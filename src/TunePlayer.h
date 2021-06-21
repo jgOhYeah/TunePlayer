@@ -40,7 +40,7 @@
 // Effects
 #define EFFECT_NONE 0
 #define EFFECT_STACCATO 1
-#define EFFECT_LEGARTO 2
+#define EFFECT_LEGATO 2
 
 /**
  * Main tune playing class
@@ -202,7 +202,7 @@ class TunePlayer {
                         // Octave and note are already set
                         // Also calculate the time the sound should be on
                         switch(effect) { //Claculate how much of the total time there should be sound - small gaps between notes.
-                            case EFFECT_LEGARTO:
+                            case EFFECT_LEGATO:
                                 noteData.playTime = 0;
                                 break;
                             case EFFECT_STACCATO:
