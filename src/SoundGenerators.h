@@ -29,7 +29,7 @@ class SoundGenerator {
 
         /** Plays a given midi note. Not used for TunePlayer, but might be useful for other things */
         void playMidiNote(uint8_t midiNote) {
-            playNote(midiNote % 12, midiNote/8-4);
+            playNote(midiNote % 12, midiNote/12 -2);
         }
 };
 
@@ -57,7 +57,7 @@ class ToneSound : public SoundGenerator {
         }
 
         /** Stops making noises */
-        void stopNote() {
+        void stopSound() {
             noTone(m_pin);
         }
 

@@ -12,7 +12,7 @@ Notes are stored in an array. Where and how this array is stored is flexible and
 In general in the diagrams below, `1` represents an always on, true, 1, high... bit, `0` represents an always off, false, 0, low... bit and `*` does not matter and is currently not used. See the description below each diagram for italic letters.
 
 ## Notes and rests
-![Diagram of meaning of bits in a note message](NoteDiagram.svg)
+![Diagram of meaning of bits in a note message](images/NoteDiagram.svg)
 
 
 <details>
@@ -94,7 +94,7 @@ If this is 0 (off), the length is interpreted as being in *1/8<sup>th</sup>* bea
 </details>
 
 ## Repeats
-![Diagram of meaning of bits in a repeat message](RepeatDiagram.svg)
+![Diagram of meaning of bits in a repeat message](images/RepeatDiagram.svg)
 
 <details>
   <summary>Number of repeats (todo) (<i>i</i>)</summary>
@@ -118,7 +118,7 @@ The number of messages to go back.
 </details>
 
 ## Tempo setting
-![Diagram of meaning of bits in a set tempo message](TempoDiagram.svg)
+![Diagram of meaning of bits in a set tempo message](images/TempoDiagram.svg)
 
 <details>
   <summary>Effect (todo) (<i>f</i>)</summary>
@@ -136,7 +136,7 @@ TODO:</b> Make this divided by one or carve out some bits to be used for some mo
 </details>
 
 ## End of tune
-![Diagram of meaning of bits in a tune end message](TuneEndDiagram.svg)
+![Diagram of meaning of bits in a tune end message](images/TuneEndDiagram.svg)
 
 <details>
   <summary>Start over (<i>a</i>)</summary>
