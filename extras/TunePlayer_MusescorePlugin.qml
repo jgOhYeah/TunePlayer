@@ -1,3 +1,11 @@
+/** TunePlayer_MusescorePlugin.qml
+ * Plugin for converting Musescore files to a format that can be used by the
+ * TunePlayer Arduino library.
+ *
+ * Written by Jotham Gates
+ * Created 06/04/2020
+ * Modified 22/06/2021
+ */
 import QtQuick 2.8
 import MuseScore 3.0
 import QtQuick.Controls 2.2
@@ -5,7 +13,7 @@ MuseScore {
       // TODO: Text box to set the max number of notes per line
       menuPath: "Plugins.Generate TunePlayer Code"
       description: "Exports single notes into a 16 bit format for an Arduino microcontroller"
-      version: "1.6"
+      version: "1.6.1"
       pluginType: "dialog"
 
       // Properties that can be changed

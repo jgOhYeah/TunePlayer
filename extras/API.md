@@ -1,5 +1,5 @@
 # API Reference
-TODO
+TODO. For now, look at the class diagram, examples and [source code](../src)
 
 ## Class Diagram
 Excuse the probably not proper arrows, but better than nothing.

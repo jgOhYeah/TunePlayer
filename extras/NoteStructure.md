@@ -65,7 +65,7 @@ A 6 bit number representing the length of the note.
 
 By default, the length is the number of *1/8<sup>th</sup>* beats *-1*. For example, a crotchet (*1/4* note) is *8/8* beats, so in this case the length would be *7*.
 
-If the triplet mode bit is set, the length is now interpreted as the number of *1/12<sup>th</sup>* beats, allowing correct triplets to be represented.
+If the triplet mode bit is set, the length is now interpreted as the number of *1/12<sup>th</sup>* beats *-1*, allowing correct triplets to be represented.
 </details>
 
 <details>
@@ -100,6 +100,15 @@ If this is 0 (off), the length is interpreted as being in *1/8<sup>th</sup>* bea
   <summary>Number of repeats (todo) (<i>i</i>)</summary>
 
 Not currently implemented. Currently repeats once.
+
+A possible structure **might** be:
+| Value | Binary | Number of repeats                      |
+|:-----:|:------:|:---------------------------------------|
+|   0   | `0b00` | Once only (compatible with current)    |
+|   1   | `0b01` | Repeat twice                           |
+|   2   | `0b10` | Repeat 3 times                         |
+|   3   | `0b10` | Repeat every time (never go past here) |
+
 </details>
 
 <details>

@@ -9,7 +9,7 @@ Open the plugin manager in *Plugins > Plugin Manager* and tick *TunePlayer_Muses
 ![Musescore plugin manager screenshot](MusescorePluginManager.png)
 
 ## Running the plugin
-Open the score you want to conver. For best results, the score should have only a single instruement and only one note at a time (no chords).
+Open the score you want to conver. For best results, the score should have only a single instruement and only one note at a time (no chords). See [here](songs) for examples of suitable files.
 
 Navigate to *Plugins > Generate TunePlayer Code* and click it. This should bring up a window as shown below.
 ![Screenshot of the plugin window](MusescorePluginScreenshot.png)

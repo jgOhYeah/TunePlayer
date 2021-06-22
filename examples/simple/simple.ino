@@ -3,13 +3,13 @@
  * 
  * Written by Jotham Gates, 12/06/2021
  */
-// #define MANUAL_CUTOFF
+// #define MANUAL_CUTOFF // Required for TimerOneSound
 #include <TunePlayer.h>
 #define PIEZO_PIN 9
 
 // Adapted from this midi file: https://www.8notes.com/scores/16380.asp?ftype=midi
-// See FucikEntryoftheGladiatorsPNO.mscz for an example of a suitable file to convert
-// Converted from 'FucikEntryoftheGladiatorsPNO' by TunePlayer Musescore plugin V1.6
+// See FucikEntryoftheGladiatorsPNO.mscz in extras/songs for an example of a suitable file to convert
+// Converted from 'FucikEntryoftheGladiatorsPNO' by TunePlayer Musescore plugin V1.6.1
 const uint16_t FucikEntryoftheGladiatorsPNO[] PROGMEM = {
     0xe118, // Tempo change to 280.0002 BPM
     0x3a38,0x2a38,0x1a18,0x2a18,0x1a18,0xa18,0xb838,0xa838,0x9838,0xa838,0xa38,0xb838,0xa818,0xb818,0xa818,0x9818,0x8838,0x7838,0x6838,0x7838,0xa838,0x8818,0x8818,0x4838,0x5838,0xa838,0x8818,0x8818,0x4838,0x5838,0x2818,0x3818,0x4818,0x5818,0x6818,0x7818,0x8818,0x9818,0xa818,0xb818,
