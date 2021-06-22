@@ -11,6 +11,8 @@ Each note is stored as a 16 bit integer and the method of loading tunes and how 
 
 This library is inspired (but not compatible with) the [PICAXE tune command](https://picaxe.com/basic-commands/digital-inputoutput/tune/)
 
+This [cppQueue](https://github.com/SMFSW/Queue) library is required to be installed.
+
 ## Getting started
 See the [simple example](examples/simple) for this in one file.
 
