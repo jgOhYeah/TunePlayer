@@ -1,4 +1,5 @@
-# TunePlayer
+# TunePlayer ![Arduino Lint Actions Status](https://github.com/jgOhYeah/TunePlayer/actions/workflows/arduino-lint.yml/badge.svg)
+
 An Arduino library to decode and play simple tunes.
 
 Each note is stored as a 16 bit integer and the method of loading tunes and how each note is played is reconfigurable. The current anticipated method of tune playing revolves around a pwm square wave on a piezo siren or speaker.

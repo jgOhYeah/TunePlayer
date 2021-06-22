@@ -1,3 +1,4 @@
 # Ignore development flag for Arduino libraries.
 .development
 *.mscbackup
+*.code-workspace
