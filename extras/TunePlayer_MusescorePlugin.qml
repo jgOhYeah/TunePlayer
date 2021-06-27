@@ -13,7 +13,7 @@ MuseScore {
       // TODO: Text box to set the max number of notes per line
       menuPath: "Plugins.Generate TunePlayer Code"
       description: "Exports single notes into a 16 bit format for an Arduino microcontroller"
-      version: "1.6.1"
+      version: "1.7.0"
       pluginType: "dialog"
 
       // Properties that can be changed
@@ -48,6 +48,7 @@ MuseScore {
             tieTotalTick = 0;
             repeatBackToAddress = 0;
             curLineNotes = 0;
+            curScore.createPlayEvents(); // To make the play events be meaningful
 
             // Do the work
             applyToNotesInSelection(repeat);
@@ -70,6 +71,7 @@ MuseScore {
             var track = 0;
             var segment = curScore.firstSegment();
             while (segment) {
+                  // console.log("Name: " + segment.subtypeName() + ", L: " + segment.annotations.length);
                   var element = segment.elementAt(track);
                   if (element) {
                         if (element._name() == "BarLine") {
@@ -93,7 +95,7 @@ MuseScore {
                         if(tempoElement != undefined) { //we have a tempo change element
                               exportTempoChange(tempoElement.tempo);
                         } //Have before to set before the note
-                        if (element && element.type === Element.CHORD) {
+                        if (element.type === Element.CHORD) {
                               var note = highestNote(element.notes);
                               processForTies(note.pitch,noteDurationCalc(segment.next.tick-segment.tick),note);
                         } else if (element.type === Element.REST) {
@@ -202,7 +204,17 @@ MuseScore {
       }
 
       function exportNote(notePitchInput,noteLength,note) {
-            var noteEffect = 0; // TODO: Dotted, slurred, normal
+            // Note effect (staccarto, slurred / legato)
+            var noteEffect = 0;
+            if(note.playEvents[0].len < 501) {
+                  // Staccarto
+                  noteEffect = 1;
+            } else if (note.playEvents[0].len == 1000) {
+                  // Legato
+                  noteEffect = 2;
+            }
+
+            // Note pitch
             if (notePitchInput < 128) { //It makes sound
                   var notePitch = notePitchInput % 12;
                   var noteOctave = Math.floor(notePitchInput / 12) - 2; // 2 * 12 is midi note 24 start
@@ -211,6 +223,8 @@ MuseScore {
                   var notePitch = 12; //Rest
                   var noteOctave = 0;
             }
+
+            // Timing and length
             var tripletTime = 0;
             if((noteLength % 2 == 0) && (noteLength % 3 == 0)) {
                   //This note can be expressed in 1/8 and 1/12 beats - use normal mode (1/8)
