@@ -56,10 +56,12 @@ class TunePlayer {
             soundGenerator = newSoundGenerator;
 
             soundGenerator->begin();
+            tuneLoader->begin();
         }
 
         void begin() {
             soundGenerator->begin();
+            tuneLoader->begin();
         }
 
         /**

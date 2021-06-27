@@ -17,6 +17,10 @@ This [cppQueue](https://github.com/SMFSW/Queue) library is required to be instal
 ## Getting started
 See the [simple example](examples/simple) for this in one file.
 
+### Installation
+Search for *TunePlayer* in the Arduino library manager or download this repository and copy it to the libraries folder (for me, *~/Documents/Arduino/libraries/*).
+If not installed already, the [cppQueue](https://github.com/SMFSW/Queue) library should be installed as well.
+
 ### Hardware
 The simplest way is to connect a piezo buzzer / siren (e.g. smoke alarm) to the output pin (pin 9 in the examples). For makimum loudness, you will probably need a driver circuit and tune things to resonate.
 <!-- TODO: Link to [Bike Horn] repository -->

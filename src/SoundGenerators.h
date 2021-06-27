@@ -108,7 +108,7 @@ class TimerOneSound : public SoundGenerator {
         }
 
         /** Stops making a noise */
-        void stopSound() {
+        virtual void stopSound() {
             // Shutdown timer
             TCCR1A = 0;
             TCCR1B = 0;
