@@ -1,7 +1,9 @@
 /**
  * TunePlayer.h
  * Class for playing tunes from a compressed 16 bit format.
- * Written by Jotham Gates, 12/06/2021
+ * Written by Jotham Gates
+ * Created 12/06/2021
+ * Modified 28/06/2021
  */
 
 #pragma once
@@ -15,9 +17,13 @@
 // #define PRECISE_FREQS // If using tone and not timer 1, store the required frequency for each note rather than one octave and caculating it. Might be a bit more correct, but more memory.
 // #define MANUAL_CUTOFF // Define this if the SoundGenerator cannot stop playing automatically (TimerOneSound for instance)
 
-#define NOTES_QUEUE_MAX 4
-#define NOTES_QUEUE_MIN_TARGET 2
-#define REPEATS_MAX_CONCURRENT 8
+// Define defaults if not already specified.
+#ifndef NOTES_QUEUE_MAX
+    #define NOTES_QUEUE_MAX 4
+#endif
+#ifndef REPEATS_MAX_CONCURRENT
+    #define REPEATS_MAX_CONCURRENT 4
+#endif
 
 // Notes
 #define NOTE_C 0
@@ -41,6 +47,7 @@
 #define EFFECT_NONE 0
 #define EFFECT_STACCATO 1
 #define EFFECT_LEGATO 2
+// Effect 3 is currently unused
 
 /**
  * Main tune playing class
@@ -85,13 +92,26 @@ class TunePlayer {
          * playback.
          */
         void update() {
-            // Could break these into high and low priority tasks?
+            updateLowPrio();
+            updateHighPrio();
+        }
+
+        /**
+         * Performs low priority tasks and housekeeping functions.
+         */
+        void updateLowPriority() {
             spool(); // Low priority
+        }
+
+        /**
+         * Performs high priority tasks (playing at the right time).
+         */
+        void updateHighPriority() {
             m_makeNoise(); // High priority
 
             // High priority
 #ifdef MANUAL_CUTOFF
-            if(isPlaying && m_curNoteStop && millis()-m_curNoteStart > m_curNoteStop) {
+            if(isPlaying && m_curNoteStop && micros()-m_curNoteStart > m_curNoteStop) {
                 soundGenerator->stopSound();
             }
 #endif
@@ -169,7 +189,7 @@ class TunePlayer {
 
                 case NOTE_SETTING:
                     // Set the tempo
-                    m_timebase = 2500 / (rawNote & 0x3FF);
+                    m_timebase = 2500000 / (rawNote & 0x3FF);
                     m_noteIndex++; // Increase the noteIndex
                     break;
 
@@ -229,7 +249,7 @@ class TunePlayer {
          */
         void m_makeNoise() {
             // Check if it is the correct time to update the tune
-            if(isPlaying && millis()-m_curNoteStart > m_nextNoteTime) {
+            if(isPlaying && micros()-m_curNoteStart > m_nextNoteTime) {
                 if(!m_notesQueue.isEmpty()) {
                     // Get the data and play it
                     m_NoteData noteData;
@@ -254,19 +274,19 @@ class TunePlayer {
                     // Set to check repeatedly
                     m_nextNoteTime = 0;
                 }
-                m_curNoteStart = millis();
+                m_curNoteStart = micros();
             }
         }
 
         cppQueue m_notesQueue = cppQueue(sizeof(m_NoteData), NOTES_QUEUE_MAX, FIFO);
         cppQueue m_repeatsStack = cppQueue(sizeof(uint16_t), REPEATS_MAX_CONCURRENT, LIFO);
         uint16_t m_noteIndex = 0;
-        uint16_t m_timebase = 20;
-        uint16_t m_nextNoteTime = 0;
+        uint32_t m_timebase = 20;
+        uint32_t m_nextNoteTime = 0;
         uint32_t m_curNoteStart = 0;
 
         // Only needed if the time has to be stopped manually
 #ifdef MANUAL_CUTOFF
-        uint16_t m_curNoteStop = 0;
+        uint32_t m_curNoteStop = 0;
 #endif
 };

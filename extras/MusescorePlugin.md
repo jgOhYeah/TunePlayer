@@ -14,6 +14,8 @@ Open the score you want to conver. For best results, the score should have only 
 Navigate to *Plugins > Generate TunePlayer Code* and click it. This should bring up a window as shown below.
 ![Screenshot of the plugin window](images/MusescorePluginScreenshot.png)
 
-The tune can be made to restart from the beginning when it finishes by ticking the *Loop endlessly* checkbox. For easier debugging or learning how the notes are structured, *Display binary* will show all numbers as binary instead of hex.
+The tune can be made to restart from the beginning when it finishes by ticking the *Loop endlessly* checkbox. For easier debugging or learning how the notes are structured, *Display binary* will show all numbers as binary instead of hexadecimal.
 
-The code can be copied to the clipboard by clicking the blue *Copy to cplipboard* button or clicking on the text area a couple of times.
+The maximum number of notes that will be put on one line (code formatting) can be set using the *Notes per line* number entry.
+
+The code can be copied to the clipboard by clicking the blue *Copy to clipboard* button or clicking on the text area a couple of times.

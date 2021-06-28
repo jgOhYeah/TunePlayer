@@ -14,7 +14,9 @@
 For more info, feel free to look at the class diagram, examples and [source code](../src), or create an issue.
 
 ## Tune Pipeline
-TODO
+This diagram may help to give an overview of how a note goes from data in memory to sound. Dashed lines represent an action being started, thin solid lines are addresses being transferred and thick solid lines are the notes in their various states being transferred between components.
+
+![Diagram of transformations from raw data to sound](images/Pipeline.svg)
 
 ## Class Diagram
 Excuse the probably not proper arrows, but better than nothing.
@@ -23,10 +25,12 @@ Excuse the probably not proper arrows, but better than nothing.
 ## Constants and definitions
 If needed, define these before including `TunePlayer.h`.
 
-|   Definition    | Comment                                                                                                                                                                                                                                                                                                                  | Default value |
-|:---------------:|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:-------------:|
-| `MANUAL_CUTOFF` | If defined, the `stopSound` method of the `SoundGenerator` object will be called whenever the note ends. This is not necessary for implementations that stop sound automatically like `ToneSound`, but is required for the likes of `TimerOnesound` that will keep playing until stopped.                                |   Undefined   |
-| `PRECISE_FREQS` | If defined and using `ToneSound`, every single frequency of each note is stored as an array and loaded. This is still limited to integer values, but may be sometimes marginally more accurate than the default method of halving from an array containing only the highest notes, although a lot less memory efficient. |   Undefined   |
+|        Definition        | Comment                                                                                                                                                                                                                                                                                                                  | Default value |
+|:------------------------:|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:-------------:|
+|     `MANUAL_CUTOFF`      | If defined, the `stopSound` method of the `SoundGenerator` object will be called whenever the note ends. This is not necessary for implementations that stop sound automatically like `ToneSound`, but is required for the likes of `TimerOnesound` that will keep playing until stopped.                                |   Undefined   |
+|     `PRECISE_FREQS`      | If defined and using `ToneSound`, every single frequency of each note is stored as an array and loaded. This is still limited to integer values, but may be sometimes marginally more accurate than the default method of halving from an array containing only the highest notes, although a lot less memory efficient. |   Undefined   |
+|    `NOTES_QUEUE_MAX`     | The number of notes that are buffered in the queue of notes to play at a time. If loading notes and playing in different tasks with different priorities, increasing this will allow the loading of notes to happen less frequently, but will increase the delay from calling `play` to sound actually being produced    |       4       |
+| `REPEATS_MAX_CONCURRENT` | The maximum number of repeats that will be expected at a time (levels of repeats inside repeats)                                                                                                                                                                                                                         |       4       |
 
 ## `TunePlayer` Class
 This class does handles interpreting notes given by a `TuneLoader` class, timing and passing the correct note to play on to a `SoundGenerator` object.
@@ -62,6 +66,12 @@ Enables playback of the tune. Playback will start on the next call to `update()`
 ##### `void update()`
 Performs all housekeeping operations necessary for tune loading and playback. This should be called as often as possible.
 
+##### `void updateLowPriority()`
+Performs low priority tasks and housekeeping functions. This can be used for example with some form of multitasking.
+
+##### `void updateHighPriority()`
+Performs high priority tasks (playing at the right time). This can be used for example with some form of multitasking.
+
 ##### `void pause(bool holdNote = false)`
 Stops making noise, but keeps the queue of notes and pointers to the next note. This means that `play` can be called and the tune will keep playing from the next note after the one on which the tune was paused.
 
@@ -96,3 +106,13 @@ TODO
 ### `RAMTuneLoader` Derived Class
 TODO
 <br>**NOTE:** NOT IMPLEMENTED YET!!!
+
+## `SoundGenerator` Abstract Class
+TODO
+
+### `ToneSound` Derived Class
+
+### `TimerOneSound` Derived Class
+Uses Timer One in avr based boards (atmega328p specifically). This offers a low more control over things such as the duty cycle. This class can be inherited by another class that overrides the `uint16_t m_compareValue(uint16_t counter)` method that returns the value at which the pin should go low when using fast pwm mode. `counter` is the value that the timer will reset at.
+
+See the [Bike Horn source code](https://github.com/jgOhYeah/BikeHorn/blob/main/BikeHorn/soundGeneration.h) for an example.
