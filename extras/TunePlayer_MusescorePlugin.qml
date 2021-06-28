@@ -4,7 +4,7 @@
  *
  * Written by Jotham Gates
  * Created 06/04/2020
- * Modified 22/06/2021
+ * Modified 28/06/2021
  */
 import QtQuick 2.8
 import MuseScore 3.0
@@ -21,7 +21,7 @@ MuseScore {
       height: 400
       property var defaultRepeat: false;
       property var displayBinary: false;
-      property var maxNotesPerLine: 40;
+      property var maxNotesPerLine: 10;
 
       // Global variables
       property var noteString: "";
@@ -97,9 +97,11 @@ MuseScore {
                         } //Have before to set before the note
                         if (element.type === Element.CHORD) {
                               var note = highestNote(element.notes);
-                              processForTies(note.pitch,noteDurationCalc(segment.next.tick-segment.tick),note);
+                              if(note) {
+                                    processForTies(note.pitch,noteDurationCalc(segment.next.tick-segment.tick),note);
+                              }
                         } else if (element.type === Element.REST) {
-                              exportNote(128,noteDurationCalc(segment.next.tick-segment.tick),0);
+                              exportNote(128,noteDurationCalc(segment.next.tick-segment.tick),null);
                         }
                   }
                   segment = segment.next;
@@ -108,7 +110,7 @@ MuseScore {
       // Finds the highest note in case there are multiple notes
       function highestNote(notes) {
             if(notes.length < 1) {
-                  return;
+                  return null;
             }
             var highest = notes[0];
             for(var i = 1; i < notes.length; i++) {
@@ -206,13 +208,16 @@ MuseScore {
       function exportNote(notePitchInput,noteLength,note) {
             // Note effect (staccarto, slurred / legato)
             var noteEffect = 0;
-            if(note.playEvents[0].len < 501) {
-                  // Staccarto
-                  noteEffect = 1;
-            } else if (note.playEvents[0].len == 1000) {
-                  // Legato
-                  noteEffect = 2;
-            }
+            // console.log(note.playEvents.length); // TODO: Use # of play events as indicator of glissando?
+            if(note && note.playEvents) {
+                  if(note.playEvents[0].len < 501) {
+                        // Staccarto
+                        noteEffect = 1;
+                  } else if (note.playEvents[0].len == 1000) {
+                        // Legato
+                        noteEffect = 2;
+                  }
+            } // Otherwise a rest
 
             // Note pitch
             if (notePitchInput < 128) { //It makes sound
@@ -313,6 +318,31 @@ MuseScore {
                         onClicked: {
                               displayBinary = binaryCheckbox.checked;
                               runConverter(loopEndlessly.checked);
+                        }
+                  }
+                  Text {
+                        text: "Max. Notes per line:"
+                  }
+                  SpinBox {
+                        id: notesPerRowSpinbox
+                        anchors.topMargin: 5;
+                        from: 1
+                        to: 10000
+                        value: maxNotesPerLine
+                        editable: true
+                        contentItem: TextInput { // https://stackoverflow.com/a/55850711
+                              text: notesPerRowSpinbox.textFromValue(notesPerRowSpinbox.value, notesPerRowSpinbox.locale)
+                              font: notesPerRowSpinbox.font
+                              horizontalAlignment: Qt.AlignHCenter
+                              verticalAlignment: Qt.AlignVCenter
+                              readOnly: !notesPerRowSpinbox.editable
+                              validator: notesPerRowSpinbox.validator
+                              inputMethodHints: Qt.ImhFormattedNumbersOnly
+                              onTextChanged: {
+                                    notesPerRowSpinbox.value =  parseInt(text.replace(",", ""));
+                                    maxNotesPerLine = notesPerRowSpinbox.value;
+                                    runConverter(loopEndlessly.checked);
+                              }
                         }
                   }
             }
