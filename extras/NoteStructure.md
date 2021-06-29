@@ -70,8 +70,6 @@ If the triplet mode bit is set, the length is now interpreted as the number of *
 
 <details>
   <summary>Effect (<i>e</i>)</summary>
-<b>
-TODO:</b> This is still a work in progress. While it is implemented in the Arduino library, it is not in the Musescore plugin.
 
 Two bits for effects such as staccarto and legato notes.
 

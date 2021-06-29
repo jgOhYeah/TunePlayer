@@ -26,10 +26,13 @@ graph TD;
     end
     subgraph SoundGenerator
         playNote{playNote}
+        stopSound{stopSound}
         output[\Physical / software output/]
+        stopSound ==>|Stop sound command|output
         playNote ==>|Audio / signal|output
     end
 
     loadNote ====>|Raw note data| processing
     processing ---->|Note address in song| loadNote
-    scheduling ==>|Processed Note| playNote
+    scheduling ==>|Note, Octave, time to play| playNote
+    scheduling ==>|"Stop sound command (if needed)"| stopSound

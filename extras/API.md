@@ -16,7 +16,13 @@ For more info, feel free to look at the class diagram, examples and [source code
 ## Tune Pipeline
 This diagram may help to give an overview of how a note goes from data in memory to sound. Dashed lines represent an action being started, thin solid lines are addresses being transferred and thick solid lines are the notes in their various states being transferred between components.
 
-![Diagram of transformations from raw data to sound](images/Pipeline.svg)
+<image src="images/Pipeline.svg" alt="Diagram of transformations from raw data to sound" width="650px">
+
+While playing a tune, the `TuneLoader` is asked for a note at an address. It returns the raw data, which is processed. If the note is something that makes a noise, a rest or an end of song with no repeat message, it is added to a queue to be picked up when needed by another part that plays the notes on time.
+
+If the note is a repeat, the current address of the note is compared to the top of a stack of repeats addresses. This keeps a record of it we have come accross it before. If the address is on the top of the stack, than it has been seen once already and should be skipped. Otherwise, the address counter is changed as required and the address of the repeat is added to the repeats stack.
+
+End of song with repeats messages just reset the address counter back to zero.
 
 ## Class Diagram
 Excuse the probably not proper arrows, but better than nothing.

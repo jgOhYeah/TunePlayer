@@ -187,7 +187,7 @@ class TunePlayer {
                     }
                     break;
 
-                case NOTE_SETTING:
+                case NOTE_SETTING: // BUG: Make the tempo only be set when the note is about to be played.
                     // Set the tempo
                     m_timebase = 2500000 / (rawNote & 0x3FF);
                     m_noteIndex++; // Increase the noteIndex
