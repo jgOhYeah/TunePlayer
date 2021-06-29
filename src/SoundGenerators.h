@@ -22,7 +22,7 @@ class SoundGenerator {
 
         /**
          * Plays a note. If playTime is non zero, may automatically stop playing
-         * if supported.
+         * if supported (in us).
          */
         virtual void playNote(uint8_t note, uint8_t octave, uint32_t playTime=0) {}
         virtual void stopSound() {}
@@ -49,7 +49,7 @@ class ToneSound : public SoundGenerator {
             uint16_t freq = m_frequency(note, octave);
             if(playTime) {
                 // Time given
-                tone(m_pin, freq, playTime);
+                tone(m_pin, freq, playTime/1000);
             } else {
                 // No time given
                 tone(m_pin, freq);

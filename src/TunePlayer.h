@@ -92,8 +92,8 @@ class TunePlayer {
          * playback.
          */
         void update() {
-            updateLowPrio();
-            updateHighPrio();
+            updateLowPriority();
+            updateHighPriority();
         }
 
         /**
@@ -153,8 +153,8 @@ class TunePlayer {
         struct m_NoteData {
             uint8_t note;
             uint8_t octave;
-            uint16_t playTime;
-            uint16_t nextTime;
+            uint32_t playTime;
+            uint32_t nextTime;
         };
 
         /**
@@ -281,7 +281,7 @@ class TunePlayer {
         cppQueue m_notesQueue = cppQueue(sizeof(m_NoteData), NOTES_QUEUE_MAX, FIFO);
         cppQueue m_repeatsStack = cppQueue(sizeof(uint16_t), REPEATS_MAX_CONCURRENT, LIFO);
         uint16_t m_noteIndex = 0;
-        uint32_t m_timebase = 20;
+        uint32_t m_timebase = 20000;
         uint32_t m_nextNoteTime = 0;
         uint32_t m_curNoteStart = 0;
 
