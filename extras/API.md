@@ -98,12 +98,28 @@ None
 Placeholder for if there is any initialisation required.
 
 ##### `virtual uint16_t loadNote(uint16_t address)`
-Placeholder for the method that loads a 2 byte integer at address `address` in the song and returns it. For example, the first note is address 0, second is address 1...
+Placeholder for the method that loads a 2 byte integer at address `address` in the song and returns it. The first note is *0*, the last note is *number of notes - 1*.
 
 ### `FlashTuneLoader` Derived Class
 Uses the `PROGMEM` feature of AVR chips to load tunes stored in the program memory.
 
-TODO
+#### Attributes
+None
+
+#### Methods
+##### `void setTune(uint16_t *tune)`
+Sets the array in program memory to load from.
+
+###### Example
+```c++
+const uint16_t FucikEntryoftheGladiatorsPNO[] PROGMEM = {
+    0xe118, // Tempo change to 280.0002 BPM
+    0x3a38,0x2a38,0x1a18,0x2a18,0x1a18,0xa18,
+    //...
+    0xf000 // End of tune. Stop playing.
+};
+flashLoader.setTune(FucikEntryoftheGladiatorsPNO);
+```
 
 ### `EEPROMTuneLoader` Derived Class
 TODO
@@ -114,11 +130,36 @@ TODO
 <br>**NOTE:** NOT IMPLEMENTED YET!!!
 
 ## `SoundGenerator` Abstract Class
-TODO
+A set of classes that can output sound at the right times.
+
+#### Constructor
+No parameters required.
+#### Attributes
+None
+
+#### Methods
+##### `virtual void begin()`
+Sets up the class. Called by `TunePlayer.begin`.
+
+##### `virtual void playNote(uint8_t note, uint8_t octave, uint32_t playTime=0)`
+Plays a note. `playTime` is the time in microseconds that the note should be played for. If this is not supported or `playNote` is 0, then the note should play forever.
+
+##### `virtual void stopSound()`
+Stops making noises. If `MANUAL_CUTOFF` is defined, `TunePlayer` will call this method to cut off each note.
+
+##### `void playMidiNote(uint8_t midiNote)`
+Takes a midi note (*0-127*) and calls `playNote` with the correct note and octave.
 
 ### `ToneSound` Derived Class
+Uses the built in Arduino [`tone`](https://www.arduino.cc/reference/en/language/functions/advanced-io/tone/) function.
 
 ### `TimerOneSound` Derived Class
 Uses Timer One in avr based boards (atmega328p specifically). This offers a low more control over things such as the duty cycle. This class can be inherited by another class that overrides the `uint16_t m_compareValue(uint16_t counter)` method that returns the value at which the pin should go low when using fast pwm mode. `counter` is the value that the timer will reset at.
+
+See [this code](https://github.com/jgOhYeah/BikeHorn/blob/main/BikeHorn/soundGeneration.h) for an example (and original target) for the Timer One method.
+
+### `MIDISound` Derived Class
+TODO: Not implemented yet.
+Outputs a midi instruction to play the note.
 
 See the [Bike Horn source code](https://github.com/jgOhYeah/BikeHorn/blob/main/BikeHorn/soundGeneration.h) for an example.
