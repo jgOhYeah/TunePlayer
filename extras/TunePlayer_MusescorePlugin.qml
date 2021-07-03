@@ -4,7 +4,7 @@
  *
  * Written by Jotham Gates
  * Created 06/04/2020
- * Modified 22/06/2021
+ * Modified 28/06/2021
  */
 import QtQuick 2.8
 import MuseScore 3.0
@@ -13,7 +13,7 @@ MuseScore {
       // TODO: Text box to set the max number of notes per line
       menuPath: "Plugins.Generate TunePlayer Code"
       description: "Exports single notes into a 16 bit format for an Arduino microcontroller"
-      version: "1.6.1"
+      version: "1.7.0"
       pluginType: "dialog"
 
       // Properties that can be changed
@@ -21,7 +21,7 @@ MuseScore {
       height: 400
       property var defaultRepeat: false;
       property var displayBinary: false;
-      property var maxNotesPerLine: 40;
+      property var maxNotesPerLine: 10;
 
       // Global variables
       property var noteString: "";
@@ -32,9 +32,7 @@ MuseScore {
       property var repeatBackToAddress: 0;
       property var curLineNotes: 0;
       onRun: {
-            console.log("Tune Exporter Started");
             if (typeof curScore === 'undefined') {
-                  console.log("No score. Stopping");
                   Qt.quit();
             }
             runConverter(defaultRepeat);
@@ -50,13 +48,13 @@ MuseScore {
             tieTotalTick = 0;
             repeatBackToAddress = 0;
             curLineNotes = 0;
+            curScore.createPlayEvents(); // To make the play events be meaningful
 
             // Do the work
             applyToNotesInSelection(repeat);
 
             // Pretty and display
             noteString = noteString + '\n};';
-            console.log(noteString);
             outputText.text = noteString;
             outputText.selectAll();
 
@@ -70,58 +68,57 @@ MuseScore {
       }
 
       function applyToNotesInSelection(repeat) { // Originally based off one of the examples.
-            var cursor = curScore.newCursor();
-            cursor.rewind(0);
-            for (var track = 0; track < 1; ++track) {
-                  var segment = curScore.firstSegment();
-                  var cont = 0;
-                  while (segment) {
-			var element = segment.elementAt(track);
-                        if (element) {
-				var type = element.type;
-				if (element._name() == "BarLine") {
-					switch(element.subtypeName()) {
-						case "start-repeat": //||: - not exported as a note / setting
-							console.log("Start repeat");
+            var track = 0;
+            var segment = curScore.firstSegment();
+            while (segment) {
+                  // console.log("Name: " + segment.subtypeName() + ", L: " + segment.annotations.length);
+                  var element = segment.elementAt(track);
+                  if (element) {
+                        if (element._name() == "BarLine") {
+                              switch(element.subtypeName()) {
+                                    case "start-repeat": //||: - not exported as a note / setting
                                           repeatBackToAddress = 0; //Reset the number of notes to count back to.
-							break;
-						case "end-repeat": //:|| - exported as a setting
+                                          break;
+                                    case "end-repeat": //:|| - exported as a setting
                                           exportRepeat();
-							console.log("End repeat");
-							break;
-						case "end-start-repeat": //Don't know what as :||: behaves as 2 repeats
+                                          break;
+                                    case "end-start-repeat": //Don't know what as :||: behaves as 2 repeats
                                           exportRepeat();
                                           repeatBackToAddress = 0;
-							console.log("End Start repeat");
-							break;
-						case "end": //End of song. Ignoring for now.
-							console.log("End");
+                                          break;
+                                    case "end": //End of song. Ignoring for now.
                                           exportEnd(repeat);
                                           return;
-					}
-				}
-				//segment = segment.next;
-				var tempoElement = findExistingTempoElement(segment);
-				if(tempoElement != undefined) { //we have a tempo change element
-					exportTempoChange(tempoElement.tempo);
-				} //Have before to set before the note
-				if (element && element.type === Element.CHORD) {
-					var notes = element.notes;
-					for (var k = 0; k < notes.length; k++) {
-						var note = notes[k];
-						//processForTies(note.pitch,noteDurationCalc(cursor.element.duration),note);
+                              }
+                        }
+                        var tempoElement = findExistingTempoElement(segment);
+                        if(tempoElement != undefined) { //we have a tempo change element
+                              exportTempoChange(tempoElement.tempo);
+                        } //Have before to set before the note
+                        if (element.type === Element.CHORD) {
+                              var note = highestNote(element.notes);
+                              if(note) {
                                     processForTies(note.pitch,noteDurationCalc(segment.next.tick-segment.tick),note);
-					}
-				} else if (element.type === Element.REST) {
-					//console.log(Object.keys(cursor.element));
-					//exportNote(128,noteDurationCalc(cursor.element.duration),0);
-                              exportNote(128,noteDurationCalc(segment.next.tick-segment.tick),0);
-				}
-			}
-			segment = segment.next;
-				
+                              }
+                        } else if (element.type === Element.REST) {
+                              exportNote(128,noteDurationCalc(segment.next.tick-segment.tick),null);
+                        }
+                  }
+                  segment = segment.next;
+            }
+      }
+      // Finds the highest note in case there are multiple notes
+      function highestNote(notes) {
+            if(notes.length < 1) {
+                  return null;
+            }
+            var highest = notes[0];
+            for(var i = 1; i < notes.length; i++) {
+                  if(notes[i].pitch > highest.pitch) {
+                        highest = notes[i];
                   }
             }
+            return highest;
       }
       function findExistingTempoElement(segment) //Copied from https://github.com/jeetee/MuseScore_TempoChanges/blob/master/TempoChanges.qml
       { //look in reverse order, there might be multiple TEMPO_TEXTs attached
@@ -153,7 +150,6 @@ MuseScore {
 
       function exportTempoChange(tempo) {
             var tempoBpm = tempo * 60;
-            console.log("Tempo change to " + tempo + "bps = " + tempoBpm + "bpm.");
             var note = 0xE;
             var noteCode = formatNumber((note << 12) | tempoBpm);
 
@@ -167,26 +163,19 @@ MuseScore {
       }
       function processForTies(notePitchInput,noteLength,noteInfo) {
             if(isTied) { //Was previously
-                  console.log("Note is tied. Pitch: " + notePitchInput + "\tLength: " + noteLength);
-                  console.log("Note total length before: "+ tieTotalTick);
                   tieTotalTick += noteLength;
-                  console.log("After: " + tieTotalTick);
                   if(noteInfo.tieForward) { //Multiple notes tied
-                        //console.log("Tied forward existing");
                         //isTied is already true
                   } else { //End of tie, export
-                        //console.log("Not tied anymore");
                         isTied = false;
                         exportNote(notePitchInput,tieTotalTick,noteInfo);
                         tieTotalTick = 0;
                   }
             } else {
                   if(noteInfo.tieForward) { //Don't export now, export next note or at the end of the tie
-                        //console.log("Tied forward first time");
                         tieTotalTick = noteLength;
                         isTied = true;
                   } else {
-                        //console.log("Not tied");
                         exportNote(notePitchInput,noteLength,noteInfo);
                         tieTotalTick = 0;
                   }
@@ -197,17 +186,14 @@ MuseScore {
             var note = 13;
             var numberRepeats = 1;
             var noteCode = formatNumber((note << 12) | (numberRepeats << 10) | repeatBackToAddress);
-            console.log("Repeat, # to go back: " + repeatBackToAddress + ", Code: " + noteCode);
             noteString += "\n    " + noteCode + ", // Repeat going back " + repeatBackToAddress + " notes\n    ";
             curLineNotes = 0;
             repeatBackToAddress++;
       }
       function noteDurationCalc(noteLength) { //Returns the note duration in 1/24 beats.
             //Separate function as this caluclation method might need / has been changed.
-            //console.log("Note length: " + noteLength.numerator + "/" + noteLength.denominator + "\tTicks: " + (32 * noteLength.numerator) / noteLength.denominator);
             //return (32 * noteLength.numerator) / noteLength.denominator;
             var arduinoTicks = (24 * noteLength) / division;
-            console.log("Ticks: " + noteLength + "\tDivision: " + division + "\tArduino Ticks: " + arduinoTicks);
             return arduinoTicks;
       }
 
@@ -220,8 +206,20 @@ MuseScore {
       }
 
       function exportNote(notePitchInput,noteLength,note) {
-            var noteEffect = 0; // TODO: Dotted, slurred, normal
-            console.log(note);
+            // Note effect (staccarto, slurred / legato)
+            var noteEffect = 0;
+            // console.log(note.playEvents.length); // TODO: Use # of play events as indicator of glissando?
+            if(note && note.playEvents) {
+                  if(note.playEvents[0].len < 501) {
+                        // Staccarto
+                        noteEffect = 1;
+                  } else if (note.playEvents[0].len == 1000) {
+                        // Legato
+                        noteEffect = 2;
+                  }
+            } // Otherwise a rest
+
+            // Note pitch
             if (notePitchInput < 128) { //It makes sound
                   var notePitch = notePitchInput % 12;
                   var noteOctave = Math.floor(notePitchInput / 12) - 2; // 2 * 12 is midi note 24 start
@@ -230,19 +228,18 @@ MuseScore {
                   var notePitch = 12; //Rest
                   var noteOctave = 0;
             }
+
+            // Timing and length
             var tripletTime = 0;
             if((noteLength % 2 == 0) && (noteLength % 3 == 0)) {
                   //This note can be expressed in 1/8 and 1/12 beats - use normal mode (1/8)
-                  console.log("Normal note");
                   var noteDuration = noteLength / 3;
             } else if(noteLength % 2 == 0) {
                   //Triplet that cannot be expressed in 1/8 beats.
-                  console.log("Triplet");
                   var noteDuration = noteLength / 2;
                   tripletTime = 1;
             } else {
                   //Can't be expressed as a triplet, so is either something weird or a 1/8 note. Use normal mode
-                  console.log("Something short or weird");
                   addError("WARNING: A note with a weird / non supported length was encountered.<br>");
                   var noteDuration = noteLength / 3;
             }
@@ -259,7 +256,6 @@ MuseScore {
             noteDuration--; // Otherwise the 0 isn't used
             var noteCode = ((notePitch << 12) & 0xF000) | ((noteOctave << 9) & 0xE00) | ((noteDuration << 3) & 0x1F8) | ((noteEffect << 1) & 0x06) | (tripletTime & 0x01);
             var displayNote = formatNumber(noteCode);
-            console.log("Note pitch (C is 0): " + notePitch + ", Duration: " + noteDuration + ", Octave: " + noteOctave + ", Complete: 0b" + displayNote);
 
             // New line if needed.
             curLineNotes++;
@@ -278,7 +274,6 @@ MuseScore {
                   noteCode |= 0x0001; // LSB is 1 to signal endless loop
             }
             var displayNote = formatNumber(noteCode);
-            console.log("End note");
 
             // Message about loop
             var repeatMsg = "Stop playing.";
@@ -313,7 +308,6 @@ MuseScore {
                         checked: defaultRepeat
                         text: qsTr("Loop endlessly")
                         onClicked: {
-                              console.log("Changed");
                               runConverter(loopEndlessly.checked);
                         }
                   }
@@ -322,9 +316,33 @@ MuseScore {
                         checked: displayBinary
                         text: qsTr("Display binary")
                         onClicked: {
-                              console.log("Changed");
                               displayBinary = binaryCheckbox.checked;
                               runConverter(loopEndlessly.checked);
+                        }
+                  }
+                  Text {
+                        text: "Max. Notes per line:"
+                  }
+                  SpinBox {
+                        id: notesPerRowSpinbox
+                        anchors.topMargin: 5;
+                        from: 1
+                        to: 10000
+                        value: maxNotesPerLine
+                        editable: true
+                        contentItem: TextInput { // https://stackoverflow.com/a/55850711
+                              text: notesPerRowSpinbox.textFromValue(notesPerRowSpinbox.value, notesPerRowSpinbox.locale)
+                              font: notesPerRowSpinbox.font
+                              horizontalAlignment: Qt.AlignHCenter
+                              verticalAlignment: Qt.AlignVCenter
+                              readOnly: !notesPerRowSpinbox.editable
+                              validator: notesPerRowSpinbox.validator
+                              inputMethodHints: Qt.ImhFormattedNumbersOnly
+                              onTextChanged: {
+                                    notesPerRowSpinbox.value =  parseInt(text.replace(",", ""));
+                                    maxNotesPerLine = notesPerRowSpinbox.value;
+                                    runConverter(loopEndlessly.checked);
+                              }
                         }
                   }
             }
@@ -349,7 +367,6 @@ MuseScore {
                   MouseArea {
                         anchors.fill: parent
                         onClicked: {
-                              console.log("Copying to clipboard");
                               outputText.selectAll();
                               outputText.copy();
                               outputErrors.text += "<br><i>Copied to clipboard</i>";

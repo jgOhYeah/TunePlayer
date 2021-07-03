@@ -1,0 +1,38 @@
+graph TD;
+    subgraph TuneLoader
+        memory((Memory / Storage))
+        loadNote{loadNote}
+
+        loadNote -->|Address in memory|memory
+        memory ==>|Raw note data| loadNote
+    end
+    subgraph TunePlayer
+        update[[update]]
+        updateLowPriority[[updateLowPriority]]
+        updateHighPriority[[updateHighPriority]]
+        processing{Notes Processing}
+        scheduling{Scheduling}
+        m_notesQueue((m_notesQueue))
+        m_repeatsStack((m_repeatsStack))
+
+        update .-> updateLowPriority
+        update .-> updateHighPriority
+        updateLowPriority .-> processing
+        updateHighPriority .-> scheduling
+        processing -->|Address of current repeat| m_repeatsStack
+        m_repeatsStack -->|Top of stack| processing
+        processing ==>|Processed note| m_notesQueue
+        m_notesQueue ==>|Processed note| scheduling
+    end
+    subgraph SoundGenerator
+        playNote{playNote}
+        stopSound{stopSound}
+        output[\Physical / software output/]
+        stopSound ==>|Stop sound command|output
+        playNote ==>|Audio / signal|output
+    end
+
+    loadNote ====>|Raw note data| processing
+    processing ---->|Note address in song| loadNote
+    scheduling ==>|Note, Octave, time to play| playNote
+    scheduling ==>|"Stop sound command (if needed)"| stopSound

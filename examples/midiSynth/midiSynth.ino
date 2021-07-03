@@ -15,16 +15,19 @@
  * Created some time in 2016
  * Modified 22/06/2021
  */
+ // #define MANUAL_CUTOFF
 #include <TunePlayer.h>
 #define PIEZO_PIN 9
 #define MIDI_CHANNEL 0 // Zero indexed, so many software shows ch. 0 as ch. 1
 
 ToneSound piezo(PIEZO_PIN);
+// TimerOneSound piezo; // Limited to pin 9 only on atmega328p boards
 uint8_t currentNote;
 
 void setup() {
     Serial.begin(38400); // Set to 31250 for proper midi or set to 38400 for most usb - midi converter programs.
     pinMode(LED_BUILTIN, OUTPUT);
+    piezo.begin();
 }
 
 void loop () {
