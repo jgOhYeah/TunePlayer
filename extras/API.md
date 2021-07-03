@@ -161,5 +161,3 @@ See [this code](https://github.com/jgOhYeah/BikeHorn/blob/main/BikeHorn/soundGen
 ### `MIDISound` Derived Class
 TODO: Not implemented yet.
 Outputs a midi instruction to play the note.
-
-See the [Bike Horn source code](https://github.com/jgOhYeah/BikeHorn/blob/main/BikeHorn/soundGeneration.h) for an example.
