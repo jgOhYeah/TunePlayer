@@ -1,0 +1,11 @@
+# This is a comment
+# I haven't actually implemented any of this yet, but this is maybe what it looks like.
+
+        title   "Test file / example."
+label:
+        tempo   180     # This is a set tempo command
+        a       8       # Note with no effects.
+        bb      16      slur
+another_label:
+        c#      24
+        jump    label   4       # Jump to "label" and repeat 4 times.
