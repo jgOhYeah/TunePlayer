@@ -50,7 +50,6 @@ classDiagram
     class TunePlayer {
         +BaseTuneLoader tuneLoader
         +SoundGenerator soundGenerator
-        +bool isPlaying
         -Queue~_NoteData~ m_notesQueue
         -Queue~uint16_t~ m_repeatsStack
         -uint16_t m_noteAddress
@@ -68,7 +67,9 @@ classDiagram
         +update()
         +updateLowPriority()
         +updateHighPriority()
+        +isPlaying() bool
         -m_makeNoise()
+        -bool m_isPlaying
     }
 
     class m_NoteData {

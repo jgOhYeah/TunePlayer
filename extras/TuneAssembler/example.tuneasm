@@ -2,6 +2,7 @@
 # I haven't actually implemented any of this yet, but this is maybe what it looks like.
 
         title   "Test file / example."
+        desc    "Hello world. This is a description that may be included in the outputted result"
 label:
         tempo   180     # This is a set tempo command
         a       8       # Note with no effects.

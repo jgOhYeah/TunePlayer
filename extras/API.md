@@ -49,11 +49,10 @@ TunePlayer tune;
 ```
 
 #### Attributes
-|       Name       |     Data Type     | Comments                                                                                  | Should be written to |   Default   |
-|:----------------:|:-----------------:|:------------------------------------------------------------------------------------------|:--------------------:|:-----------:|
-|   `tuneLoader`   | `BaseTuneLoader*` | Pointer to an object that can load and return notes to play                               |         yes          | unspecified |
-| `soundGenerator` | `SoundGenerator*` | Pointer to an object that can turn notes into sound.                                      |         yes          | unspecified |
-|   `isPlaying`    |      `bool`       | `true` when a tune is currently being played, `false` otherwise (when stopped or paused). |          no          |   `false`   |
+|       Name       |     Data Type     | Comments                                                                                  |   Default   |
+|:----------------:|:-----------------:|:------------------------------------------------------------------------------------------|:-----------:|
+|   `tuneLoader`   | `BaseTuneLoader*` | Pointer to an object that can load and return notes to play                               | unspecified |
+| `soundGenerator` | `SoundGenerator*` | Pointer to an object that can turn notes into sound.                                      | unspecified |
 
 #### Methods
 ##### `void begin(BaseTuneLoader *newTuneLoader, SoundGenerator *newSoundGenerator)`
@@ -82,10 +81,14 @@ Performs high priority tasks (playing at the right time). This can be used for e
 Stops making noise, but keeps the queue of notes and pointers to the next note. This means that `play` can be called and the tune will keep playing from the next note after the one on which the tune was paused.
 
 If `holdNote` is `true`, the note will be played for its normal time (not cut off immediately), or for `SoundGenerators` that do not stop automatically like `TimerOneSound`, will keep playing forever.
+
 ##### `void stop()`
 Stops making noise, clears the queue of notes and resets the notes address back to the start of the song. This means on calling `play` next time, the tune will restart from the beginning.
 
 Calling `stop` can also be used when changing tunes - see the [jukebox example](../examples/jukebox/jukebox.ino).
+
+##### `inline bool isPlaying()`
+Returns true if a tune is currently being played, otherwise false.
 
 ## `BaseTuneLoader` Abstract Class
 Helper classes for `TunePlayer` that help with loading of notes from required sources. Each loader should inherrit `BaseTuneLoader` and have the `loadNote` method at least.
