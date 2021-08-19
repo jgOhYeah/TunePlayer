@@ -40,7 +40,6 @@ classDiagram
     }
 
     class TimerOneSound {
-        uint8_t dutyCycle=127
         +playNote(uint8_t note, uint8_t octave, uint32_t playTime=0)
         +playMidiNote(uint8_t note)
         +stopSound()
@@ -51,7 +50,6 @@ classDiagram
     class TunePlayer {
         +BaseTuneLoader tuneLoader
         +SoundGenerator soundGenerator
-        +bool isPlaying
         -Queue~_NoteData~ m_notesQueue
         -Queue~uint16_t~ m_repeatsStack
         -uint16_t m_noteAddress
@@ -69,7 +67,9 @@ classDiagram
         +update()
         +updateLowPriority()
         +updateHighPriority()
+        +isPlaying() bool
         -m_makeNoise()
+        -bool m_isPlaying
     }
 
     class m_NoteData {

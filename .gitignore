@@ -1,4 +1,13 @@
 # Ignore development flag for Arduino libraries.
 .development
+
+# Python
+*.pyc
+
+# Backups
+*.FCStd1
 *.mscbackup
+
+# vscode
+.vscode/*
 *.code-workspace

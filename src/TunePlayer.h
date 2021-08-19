@@ -84,7 +84,7 @@ class TunePlayer {
          * Starts to play the tune
          */
         void play() {
-            isPlaying = true;
+            m_isPlaying = true;
         }
 
         /**
@@ -127,7 +127,7 @@ class TunePlayer {
             if(!holdNote) {
                 soundGenerator->stopSound();
             }
-            isPlaying = false;
+            m_isPlaying = false;
         }
 
         /**
@@ -136,15 +136,22 @@ class TunePlayer {
          */
         void stop() {
             soundGenerator->stopSound();
-            isPlaying = false;
+            m_isPlaying = false;
             m_notesQueue.flush();
             m_noteIndex = 0;
             m_nextNoteTime = 0; // So play will work immediately
         }
 
+        /**
+         * Returns true if a tune is currently being played, otherwise false.
+         */
+        inline bool isPlaying() {
+            return m_isPlaying;
+        }
+
         BaseTuneLoader *tuneLoader;
         SoundGenerator *soundGenerator;
-        bool isPlaying = false;
+        bool m_isPlaying = false;
 
     private:
         /**
@@ -249,14 +256,14 @@ class TunePlayer {
          */
         void m_makeNoise() {
             // Check if it is the correct time to update the tune
-            if(isPlaying && micros()-m_curNoteStart > m_nextNoteTime) {
+            if(m_isPlaying && micros()-m_curNoteStart > m_nextNoteTime) {
                 if(!m_notesQueue.isEmpty()) {
                     // Get the data and play it
                     m_NoteData noteData;
                     m_notesQueue.pop(&noteData);
                     switch(noteData.note) {
                         case NOTE_END:
-                            isPlaying = false;
+                            m_isPlaying = false;
                         case NOTE_REST:
                             soundGenerator->stopSound();
                             break;
