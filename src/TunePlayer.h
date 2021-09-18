@@ -3,7 +3,7 @@
  * Class for playing tunes from a compressed 16 bit format.
  * Written by Jotham Gates
  * Created 12/06/2021
- * Modified 28/06/2021
+ * Modified 18/09/2021
  */
 
 #pragma once
@@ -111,7 +111,7 @@ class TunePlayer {
 
             // High priority
 #ifdef MANUAL_CUTOFF
-            if(isPlaying && m_curNoteStop && micros()-m_curNoteStart > m_curNoteStop) {
+            if(isPlaying() && m_curNoteStop && micros()-m_curNoteStart > m_curNoteStop) {
                 soundGenerator->stopSound();
             }
 #endif
