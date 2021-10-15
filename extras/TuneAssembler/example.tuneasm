@@ -5,7 +5,7 @@
         desc    "Hello world. This is a description that may be included in the outputted result"
 label:
         tempo   180     # This is a set tempo command
-        a       8       # Note with no effects.
+        A5       8       # Note with no effects.
         bb      16      slur
 another_label:
         c#      24

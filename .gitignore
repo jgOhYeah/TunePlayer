@@ -11,3 +11,9 @@
 # vscode
 .vscode/*
 *.code-workspace
+
+# Lex and yacc
+lex.yy.c
+a.out
+y.tab.c
+y.tab.h
