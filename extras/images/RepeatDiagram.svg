@@ -7,7 +7,7 @@
    viewBox="0 0 140.75834 22.975042"
    version="1.1"
    id="svg5"
-   inkscape:version="1.1 (1:1.1+202105261517+ce6663b3b7)"
+   inkscape:version="1.1.1 (1:1.1+202109281949+c3084ef5ed)"
    sodipodi:docname="RepeatDiagram.svg"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
@@ -35,10 +35,10 @@
      inkscape:object-paths="true"
      inkscape:zoom="1.83432"
      inkscape:cx="273.39832"
-     inkscape:cy="9.2677395"
-     inkscape:window-width="1318"
-     inkscape:window-height="712"
-     inkscape:window-x="48"
+     inkscape:cy="9.5403201"
+     inkscape:window-width="1848"
+     inkscape:window-height="1016"
+     inkscape:window-x="72"
      inkscape:window-y="27"
      inkscape:window-maximized="1"
      inkscape:current-layer="layer1"
@@ -101,11 +101,11 @@
        style="font-style:normal;font-weight:normal;font-size:19.3333px;line-height:1.25;font-family:sans-serif;letter-spacing:6.35px;white-space:pre;shape-inside:url(#rect7775);fill:#000000;fill-opacity:1;stroke:none"><tspan
          x="30"
          y="128.03202"
-         id="tspan7872"><tspan
+         id="tspan3619"><tspan
            style="font-family:'Ubuntu Mono';-inkscape-font-specification:'Ubuntu Mono'"
-           id="tspan7868">1 1 0 1</tspan><tspan
+           id="tspan3615">1 1 0 1</tspan><tspan
            style="font-style:italic;font-family:'Ubuntu Mono';-inkscape-font-specification:'Ubuntu Mono Italic'"
-           id="tspan7870">     j j j j j j j j j j </tspan></tspan></text>
+           id="tspan3617">     j j j j j j j j j j </tspan></tspan></text>
     <path
        style="fill:none;stroke:#000000;stroke-width:0.529167;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        d="M 38.492886,2.6458333 V 15.875"
@@ -127,15 +127,15 @@
          y="19.366127">Note</tspan></text>
     <text
        xml:space="preserve"
-       style="font-size:3.52777px;line-height:1.25;font-family:Ubuntu;-inkscape-font-specification:Ubuntu;stroke-width:0.264583;fill:#4d4d4d"
+       style="font-size:3.52777px;line-height:1.25;font-family:Ubuntu;-inkscape-font-specification:Ubuntu;fill:#000000;stroke-width:0.264583"
        x="40.487995"
        y="19.366125"
        id="text85764-1"><tspan
          sodipodi:role="line"
          id="tspan85762-3"
-         style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:Ubuntu;-inkscape-font-specification:'Ubuntu Italic';stroke-width:0.264583;fill:#4d4d4d"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:Ubuntu;-inkscape-font-specification:Ubuntu;fill:#000000;stroke-width:0.264583"
          x="40.487995"
-         y="19.366125">Number of repeats (todo)</tspan></text>
+         y="19.366125">Number of repeats</tspan></text>
     <text
        xml:space="preserve"
        style="font-size:3.52777px;line-height:1.25;font-family:Ubuntu;-inkscape-font-specification:Ubuntu;stroke-width:0.264583"
@@ -151,11 +151,11 @@
        xml:space="preserve"
        transform="matrix(0.26458333,0,0,0.26458333,-0.34395756,-22.848702)"
        id="text2562"
-       style="font-style:normal;font-weight:normal;font-size:19.3333px;line-height:1.25;font-family:sans-serif;letter-spacing:6.35px;white-space:pre;shape-inside:url(#rect2564);fill:#4d4d4d;fill-opacity:1;stroke:none"><tspan
+       style="font-style:normal;font-weight:normal;font-size:19.3333px;line-height:1.25;font-family:sans-serif;letter-spacing:6.35px;white-space:pre;shape-inside:url(#rect2564);fill:#000000;fill-opacity:1;stroke:none"><tspan
          x="30"
          y="128.03202"
-         id="tspan7876"><tspan
+         id="tspan3623"><tspan
            style="font-style:italic;font-family:'Ubuntu Mono';-inkscape-font-specification:'Ubuntu Mono Italic'"
-           id="tspan7874">        i i</tspan></tspan></text>
+           id="tspan3621">        i i</tspan></tspan></text>
   </g>
 </svg>

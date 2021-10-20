@@ -49,6 +49,12 @@
 #define EFFECT_LEGATO 2
 // Effect 3 is currently unused
 
+// Repeats
+#define REPEAT_ONCE 0
+#define REPEAT_TWICE 1
+#define REPEAT_THRICE 2
+#define REPEAT_EVERY 3
+
 /**
  * Main tune playing class
  */
@@ -157,11 +163,19 @@ class TunePlayer {
         /**
          * Struct for processed note data to be given to the player.
          */
-        struct m_NoteData {
+        struct NoteData {
             uint8_t note;
             uint8_t octave;
             uint32_t playTime;
             uint32_t nextTime;
+        };
+
+        /**
+         * Struct for processed repeat data
+         */
+        struct RepeatData {
+            uint16_t  index;
+            uint8_t count;
         };
 
         /**
@@ -171,26 +185,38 @@ class TunePlayer {
         void m_loadNote() {
             uint16_t rawNote = tuneLoader->loadNote(m_noteIndex);
             // Extract the note and decide what to do next.
-            m_NoteData noteData;
+            NoteData noteData;
             noteData.note = (rawNote >> 0x0C) & 0x0F;
             switch(noteData.note) {
                 case NOTE_REPEAT:
-                    // Increase the noteIndex
-                    uint16_t topIndex;
-                    if(!m_repeatsStack.peek(&topIndex) || topIndex != m_noteIndex) {
-                        // We have not seen this repeat before. Add it to the stack and go back.
-                        m_repeatsStack.push(&m_noteIndex);
-                        uint16_t goBackAmount = rawNote & 0x3FF;
-                        uint16_t newAddress = 0;
-                        if(goBackAmount < m_noteIndex) {
-                            // This won't take us back before the start
-                            newAddress = m_noteIndex - goBackAmount;
+                    // Check what type of repeat
+                    uint8_t repeatCounts = (rawNote >> 0x0A) & 0x03;
+                    if(repeatCounts != REPEAT_EVERY) {
+                        // This is a repeat type that uses the stack
+                        // Setup somewhere to store the repeat.
+                        RepeatData topRepeat;
+                        if(!m_repeatsStack.peek(&topRepeat) || topRepeat.index != m_noteIndex) {
+                            // We have not seen this repeat before. Add it to the stack and go back.
+                            RepeatData newRepeat;
+                            newRepeat.index = m_noteIndex;
+                            newRepeat.count = repeatCounts+1;
+                            m_repeatsStack.push(&newRepeat);
+
+                            m_executeRepeat(rawNote); // Jump back
+                        } else {
+                            // We have seen this repeat before. Either decrease its count by 1 or go skip it.
+                            m_repeatsStack.pop(&topRepeat); // We have to remove the repeat from the stack to modify it.
+                            if(topRepeat.count == 0) { // Done for this repeat
+                                m_noteIndex++;
+                            } else {
+                                // Decrease count and repeat again
+                                topRepeat.count--;
+                                m_repeatsStack.push(&topRepeat);
+                                m_executeRepeat(rawNote);
+                            }
                         }
-                        m_noteIndex = newAddress;
                     } else {
-                        // We have seen this repeat before. Ignore it.
-                        m_repeatsStack.drop(); // Remove the repeat to expose the next.
-                        m_noteIndex++;
+                        m_executeRepeat(rawNote); // Jump back every time
                     }
                     break;
 
@@ -259,7 +285,7 @@ class TunePlayer {
             if(m_isPlaying && micros()-m_curNoteStart > m_nextNoteTime) {
                 if(!m_notesQueue.isEmpty()) {
                     // Get the data and play it
-                    m_NoteData noteData;
+                    NoteData noteData;
                     m_notesQueue.pop(&noteData);
                     switch(noteData.note) {
                         case NOTE_END:
@@ -285,8 +311,21 @@ class TunePlayer {
             }
         }
 
-        cppQueue m_notesQueue = cppQueue(sizeof(m_NoteData), NOTES_QUEUE_MAX, FIFO);
-        cppQueue m_repeatsStack = cppQueue(sizeof(uint16_t), REPEATS_MAX_CONCURRENT, LIFO);
+        /**
+         * Extracts the number of notes to jump back from a repeat and jumps there
+         */
+        void m_executeRepeat(uint16_t rawNote) {
+            uint16_t goBackAmount = rawNote & 0x3FF;
+            uint16_t newAddress = 0;
+            if(goBackAmount < m_noteIndex) {
+                // This won't take us back before the start
+                newAddress = m_noteIndex - goBackAmount;
+            }
+            m_noteIndex = newAddress;
+        }
+
+        cppQueue m_notesQueue = cppQueue(sizeof(NoteData), NOTES_QUEUE_MAX, FIFO);
+        cppQueue m_repeatsStack = cppQueue(sizeof(RepeatData), REPEATS_MAX_CONCURRENT, LIFO);
         uint16_t m_noteIndex = 0;
         uint32_t m_timebase = 20000;
         uint32_t m_nextNoteTime = 0;

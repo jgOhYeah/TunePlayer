@@ -1,3 +1,4 @@
+%% mmdc -i ClassDiagram.mmd -o ClassDiagram.svg
 classDiagram
     BaseTuneLoader <|-- FlashTuneLoader
     BaseTuneLoader <|-- EEPROMTuneLoader
@@ -6,7 +7,8 @@ classDiagram
     TunePlayer "1" --> "1" BaseTuneLoader
     TunePlayer "1" --> "1" SoundGenerator
     TunePlayer "1" --> "1" cppQueue
-    TunePlayer "1" *.. "0..*" m_NoteData
+    TunePlayer "1" *.. "0..*" NoteData
+    TunePlayer "1" *.. "0..*" RepeatData
 
     class BaseTuneLoader {
         <<abstract>>
@@ -50,13 +52,14 @@ classDiagram
     class TunePlayer {
         +BaseTuneLoader tuneLoader
         +SoundGenerator soundGenerator
-        -Queue~_NoteData~ m_notesQueue
-        -Queue~uint16_t~ m_repeatsStack
+        -Queue~NoteData~ m_notesQueue
+        -Queue~RepeatData~ m_repeatsStack
         -uint16_t m_noteAddress
         -uint32_t m_timebase
         -uint32_t m_nextNoteTime
         -uint32_t m_curNoteStart
         -uint32_t m_curNoteStop
+        -bool m_isPlaying
         +TunePlayer()
         +begin(BaseTuneLoader *newTuneSource, SoundGenerator *newSoundGenerator)
         +begin()
@@ -69,13 +72,19 @@ classDiagram
         +updateHighPriority()
         +isPlaying() bool
         -m_makeNoise()
-        -bool m_isPlaying
+        -m_executeRepeat(uint16_t rawNote)
     }
 
-    class m_NoteData {
+    class NoteData {
         <<private>>
         +uint8_t note
         +uint8_t octave
         +uint32_t playTime
         +uint32_t nextTime
+    }
+
+    class RepeatData {
+        <<private>>
+        +uint16_t index
+        +uint8_t count
     }
