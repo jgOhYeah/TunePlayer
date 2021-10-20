@@ -41,7 +41,7 @@ void yyerror(char *);
     /* Subroutines */
 
 void yyerror(char *s) {
-    fprintf(stderr, "Error at line %d: %s\n", yylineno, s);
+    fprintf(stderr, "%s at line %d. (%s).\n", s, yylineno, yytext);
 }
 
 int yywrap(void) {

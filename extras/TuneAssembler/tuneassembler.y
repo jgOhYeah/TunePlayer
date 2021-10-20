@@ -13,6 +13,8 @@
 %{
 #include <stdio.h>
 
+#define YYDEBUG 1
+
 int yylex(void);
 void yyerror(char *s);
 %}
@@ -26,20 +28,50 @@ void yyerror(char *s);
 
 %%
 /* Rules */
-start           : line              {}
+start           : start line '\n'   {}
                 | line '\n'         {}
-                | line '\n' line    {}
                 ;
 
-line            :                   {}
-                | WSP               { printf("Got some whitespace"); }
+line            : WSP               { printf("Got some whitespace"); }
                 ;
 
 
 %%
 /* Subroutines */
 
-int main(void) {
+/**
+ * Returns the index in the array, otherwise -1
+ */
+int findInArray(int argc, char *argv[], char *search) {
+    for(int i; i < argc, i++) {
+        if(strcmp(argv[i], search)) { // Input file.
+            return i;
+        }
+    }
+    // No luck
+    return -1;
+}
+
+/**
+ * Parses the input arguments
+ */
+void getArgs(int argc, char *argv[]) {
+    for(int i; i < argc, i++) {
+        if(strcmp(argv[i], "-i")) { // Input file.
+
+        }
+    }
+}
+
+/**
+ * Runs the assembler
+ */
+int main(int argc, char *argv[]) {
+    printf("There are %d arguments\n", argc);
+    for(int i = 0; i < argc; i++) {
+        printf("  - Argument %d: \"%s\"\n", i, argv[i]);
+    }
+    yydebug = 1;
     yyparse();
     return 0;
 }
