@@ -187,10 +187,11 @@ class TunePlayer {
             // Extract the note and decide what to do next.
             NoteData noteData;
             noteData.note = (rawNote >> 0x0C) & 0x0F;
+            uint8_t repeatCounts;
             switch(noteData.note) {
                 case NOTE_REPEAT:
                     // Check what type of repeat
-                    uint8_t repeatCounts = (rawNote >> 0x0A) & 0x03;
+                    repeatCounts = (rawNote >> 0x0A) & 0x03;
                     if(repeatCounts != REPEAT_EVERY) {
                         // This is a repeat type that uses the stack
                         // Setup somewhere to store the repeat.
