@@ -4,8 +4,14 @@
  *
  * Written by Jotham Gates
  * Created 06/04/2020
- * Modified 28/06/2021
+ * Modified 01/11/2021
  */
+
+// TODO: Stop command at end when a repeat is the last time
+// TODO: Optimise mode
+// TODO: Number box to select current track.
+// BUG: Copy paste text not working when there is an ERROR / WARNING message
+
 import QtQuick 2.8
 import MuseScore 3.0
 import QtQuick.Controls 2.2
@@ -13,7 +19,7 @@ MuseScore {
       // TODO: Text box to set the max number of notes per line
       menuPath: "Plugins.Generate TunePlayer Code"
       description: "Exports single notes into a 16 bit format for an Arduino microcontroller"
-      version: "1.7.0"
+      version: "1.8.0"
       pluginType: "dialog"
 
       // Properties that can be changed
@@ -68,43 +74,59 @@ MuseScore {
       }
 
       function applyToNotesInSelection(repeat) { // Originally based off one of the examples.
-            var track = 0;
+            var track = 0; // TODO: Selectable target track?
+
+            // The getting elements from measures directly seems to only end up with a lot of clefs and no notes, so
+            // this monstrosity is required instead that attempts to keep segments starting from the beginning and
+            // measures in sync.
             var segment = curScore.firstSegment();
+            var measure = curScore.firstMeasure;
+            var lastNoteIsStop = false;
             while (segment) {
-                  // console.log("Name: " + segment.subtypeName() + ", L: " + segment.annotations.length);
-                  var element = segment.elementAt(track);
-                  if (element) {
-                        if (element._name() == "BarLine") {
-                              switch(element.subtypeName()) {
-                                    case "start-repeat": //||: - not exported as a note / setting
-                                          repeatBackToAddress = 0; //Reset the number of notes to count back to.
-                                          break;
-                                    case "end-repeat": //:|| - exported as a setting
-                                          exportRepeat();
-                                          break;
-                                    case "end-start-repeat": //Don't know what as :||: behaves as 2 repeats
-                                          exportRepeat();
-                                          repeatBackToAddress = 0;
-                                          break;
-                                    case "end": //End of song. Ignoring for now.
-                                          exportEnd(repeat);
-                                          return;
+                  var inMeasure = true;
+                  while (inMeasure) {
+                        var element = segment.elementAt(track);
+                        if (element) {
+                              if (element.name == "BarLine") {
+                                    switch(element.subtypeName()) {
+                                          case "start-repeat": // ||: - not exported as a note / setting
+                                                repeatBackToAddress = 0; //Reset the number of notes to count back to.
+                                                break;
+                                          case "end-repeat": // :|| - exported as a setting
+                                                exportRepeat(measure.repeatCount);
+                                                break;
+                                          case "end-start-repeat": //Don't know what as :||: behaves as 2 repeats
+                                                exportRepeat(measure.repeatCount);
+                                                repeatBackToAddress = 0;
+                                                break;
+                                          case "end": //End of song. Processing will still continue though
+                                                exportEnd(repeat);
+                                                lastNoteIsStop = true;
+                                                return;
+                                    }
+                              }
+                              var tempoElement = findExistingTempoElement(segment);
+                              if(tempoElement != undefined) { //we have a tempo change element
+                                    exportTempoChange(tempoElement.tempo);
+                              } //Have before to set before the note
+                              if (element.type === Element.CHORD) {
+                                    var note = highestNote(element.notes);
+                                    if(note) {
+                                          processForTies(note.pitch,noteDurationCalc(segment.next.tick-segment.tick),note);
+                                    }
+                              } else if (element.type === Element.REST) {
+                                    exportNote(128,noteDurationCalc(segment.next.tick-segment.tick),null);
                               }
                         }
-                        var tempoElement = findExistingTempoElement(segment);
-                        if(tempoElement != undefined) { //we have a tempo change element
-                              exportTempoChange(tempoElement.tempo);
-                        } //Have before to set before the note
-                        if (element.type === Element.CHORD) {
-                              var note = highestNote(element.notes);
-                              if(note) {
-                                    processForTies(note.pitch,noteDurationCalc(segment.next.tick-segment.tick),note);
-                              }
-                        } else if (element.type === Element.REST) {
-                              exportNote(128,noteDurationCalc(segment.next.tick-segment.tick),null);
-                        }
+                        inMeasure = segment.nextInMeasure != null;
+                        segment = segment.next;
                   }
-                  segment = segment.next;
+                  measure = measure.nextMeasure;
+            }
+
+            // Export an end if there isn't one for some reason (e.g. finishing on a repeat)
+            if(!lastNoteIsStop) {
+                  exportEnd(repeat);
             }
       }
       // Finds the highest note in case there are multiple notes
@@ -182,11 +204,18 @@ MuseScore {
             }
                   
       }
-      function exportRepeat() {
+      function exportRepeat(playCount) {
             var note = 13;
-            var numberRepeats = 1;
+            var numberRepeats = playCount -2; // Repeat once is 0 in TunePlayer.
+            var numberRepeatsText = playCount-1;
+            if(numberRepeats >= 3) {
+                  console.log("A section is meant to be repeated more than 3 times. Due to technical limitations, this will instead be repeated EVERY time.");
+                  addError("WARNING: A section is meant to be repeated more than 3 times. Due to technical limitations, this will instead be repeated EVERY time.<br>")
+                  numberRepeats = 3;
+                  numberRepeatsText = "every";
+            }
             var noteCode = formatNumber((note << 12) | (numberRepeats << 10) | repeatBackToAddress);
-            noteString += "\n    " + noteCode + ", // Repeat going back " + repeatBackToAddress + " notes\n    ";
+            noteString += "\n    " + noteCode + ", // Repeat going back " + repeatBackToAddress + " notes, repeating " + numberRepeatsText + " time(s)\n    ";
             curLineNotes = 0;
             repeatBackToAddress++;
       }

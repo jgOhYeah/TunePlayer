@@ -11,7 +11,6 @@
 #include <cppQueue.h>
 #include "SoundGenerators.h"
 #include "TuneLoaders.h"
-// TODO: Use microseconds?
 
 
 // #define PRECISE_FREQS // If using tone and not timer 1, store the required frequency for each note rather than one octave and caculating it. Might be a bit more correct, but more memory.
@@ -187,7 +186,7 @@ class TunePlayer {
             // Extract the note and decide what to do next.
             NoteData noteData;
             noteData.note = (rawNote >> 0x0C) & 0x0F;
-            uint8_t repeatCounts;
+            uint8_t repeatCounts; // Doesn't cope if initialised in the NOTE_REPEAT case
             switch(noteData.note) {
                 case NOTE_REPEAT:
                     // Check what type of repeat
@@ -200,7 +199,7 @@ class TunePlayer {
                             // We have not seen this repeat before. Add it to the stack and go back.
                             RepeatData newRepeat;
                             newRepeat.index = m_noteIndex;
-                            newRepeat.count = repeatCounts+1;
+                            newRepeat.count = repeatCounts;
                             m_repeatsStack.push(&newRepeat);
 
                             m_executeRepeat(rawNote); // Jump back
