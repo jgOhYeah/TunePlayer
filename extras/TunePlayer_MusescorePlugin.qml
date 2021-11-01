@@ -2,9 +2,11 @@
  * Plugin for converting Musescore files to a format that can be used by the
  * TunePlayer Arduino library.
  *
+ * This version requires at least TunePlayer V1.3.0 to play correctly
+ * 
  * Written by Jotham Gates
  * Created 06/04/2020
- * Modified 01/11/2021
+ * Modified 02/11/2021
  */
 
 // TODO: Stop command at end when a repeat is the last time
@@ -18,7 +20,7 @@ import QtQuick.Controls 2.2
 MuseScore { 
       // TODO: Text box to set the max number of notes per line
       menuPath: "Plugins.Generate TunePlayer Code"
-      description: "Exports single notes into a 16 bit format for an Arduino microcontroller"
+      description: "Exports single notes into a 16 bit format for an Arduino microcontroller. See https://github.com/jgOhYeah/TunePlayer for more details"
       version: "1.8.0"
       pluginType: "dialog"
 
@@ -260,16 +262,16 @@ MuseScore {
 
             // Timing and length
             var tripletTime = 0;
-            if((noteLength % 2 == 0) && (noteLength % 3 == 0)) {
-                  //This note can be expressed in 1/8 and 1/12 beats - use normal mode (1/8)
+            if(noteLength % 3 == 0) {
+                  // This note can be expressed in 1/8 beats - use normal mode (1/8)
                   var noteDuration = noteLength / 3;
             } else if(noteLength % 2 == 0) {
-                  //Triplet that cannot be expressed in 1/8 beats.
+                  // Triplet that cannot be expressed in 1/8 beats - use 1/12 beats.
                   var noteDuration = noteLength / 2;
                   tripletTime = 1;
             } else {
-                  //Can't be expressed as a triplet, so is either something weird or a 1/8 note. Use normal mode
-                  addError("WARNING: A note with a weird / non supported length was encountered.<br>");
+                  // Can't be expressed as a triplet, so is either something weird or a 1/8 note. Use normal mode
+                  addError("WARNING: A note with a weird / non supported length of " + noteLength + " was encountered.<br>");
                   var noteDuration = noteLength / 3;
             }
             if(noteDuration <= 0) {
