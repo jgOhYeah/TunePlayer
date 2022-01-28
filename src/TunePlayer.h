@@ -3,7 +3,7 @@
  * Class for playing tunes from a compressed 16 bit format.
  * Written by Jotham Gates
  * Created 12/06/2021
- * Modified 18/09/2021
+ * Modified 02/11/2021
  */
 
 #pragma once
