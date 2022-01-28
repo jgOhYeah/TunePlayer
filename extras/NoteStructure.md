@@ -20,7 +20,7 @@ In general in the diagrams below, `1` represents an always on, true, 1, high... 
 A 4 bit number representing the note.
 
 |         Note          | Number |  Binary  |
-|:---------------------:|:------:|:--------:|
+| :-------------------: | :----: | :------: |
 |           C           |   0    | `0b0000` |
 |       C&#x266f;       |   1    | `0b0001` |
 |           D           |   2    | `0b0010` |
@@ -45,7 +45,7 @@ A midi note (0-127) can be converted to a note using
 A 3 bit number representing the octave.
 
 | Octave | Binary  | Note Range |
-|:------:|:-------:|:----------:|
+| :----: | :-----: | :--------: |
 |   0    | `0b000` |  C1 - B1   |
 |   1    | `0b001` |  C2 - B2   |
 |   2    | `0b010` |  C3 - B3   |
@@ -74,7 +74,7 @@ If the triplet mode bit is set, the length is now interpreted as the number of *
 Two bits for effects such as staccarto and legato notes.
 
 | Effect number | Binary |       Effect       | Fraction of note time played |
-|:-------------:|:------:|:------------------:|:----------------------------:|
+| :-----------: | :----: | :----------------: | :--------------------------: |
 |       0       | `0b00` |        None        |           *7/8*\*            |
 |       1       | `0b01` |      Staccato      |            *1/2*             |
 |       2       | `0b10` |       Legato       |          Full time           |
@@ -95,17 +95,17 @@ If this is 0 (off), the length is interpreted as being in *1/8<sup>th</sup>* bea
 ![Diagram of meaning of bits in a repeat message](images/RepeatDiagram.svg)
 
 <details>
-  <summary>Number of repeats (todo) (<i>i</i>)</summary>
+  <summary>Number of repeats (<i>i</i>)</summary>
 
-Not currently implemented. Currently repeats once.
+The number of times a section is repeated.
 
-A possible structure **might** be:
-| Value | Binary | Number of repeats                      |
-|:-----:|:------:|:---------------------------------------|
-|   0   | `0b00` | Once only (compatible with current)    |
-|   1   | `0b01` | Repeat twice                           |
-|   2   | `0b10` | Repeat 3 times                         |
-|   3   | `0b10` | Repeat every time (never go past here) |
+A options are:
+| Value | Binary | Number of repeats                                      |
+| :---: | :----: | :----------------------------------------------------- |
+|   0   | `0b00` | Once only (the section is heard twice in a row)        |
+|   1   | `0b01` | Repeat twice (the section is heard 3 times in a row)   |
+|   2   | `0b10` | Repeat 3 times (the section is heard 4 times in a row) |
+|   3   | `0b10` | Repeat every time (never go past here)                 |
 
 </details>
 
