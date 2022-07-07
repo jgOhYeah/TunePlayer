@@ -22,7 +22,7 @@ A 4 bit number representing the note.
 |         Note          | Number |  Binary  |
 | :-------------------: | :----: | :------: |
 |           C           |   0    | `0b0000` |
-|       C&#x266f;       |   1    | `0b0001` |
+| C&#x266f; / D&#x266d; |   1    | `0b0001` |
 |           D           |   2    | `0b0010` |
 | D&#x266f; / E&#x266d; |   3    | `0b0011` |
 |           E           |   4    | `0b0100` |
@@ -127,10 +127,7 @@ Not currently implemented
 <details>
   <summary>Tempo (<i>s</i>)</summary>
 
-A 10 bit number representing the tempo in beats per minute / 2. Double this for the actual tempo.
-
-<b>
-TODO:</b> Make this divided by one or carve out some bits to be used for some more settings, possibly pitch bend?
+A 10 bit number representing the tempo in beats per minute.
 </details>
 
 ## End of tune

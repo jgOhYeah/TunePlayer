@@ -1,4 +1,6 @@
 %% mmdc -i ClassDiagram.mmd -o ClassDiagram.svg
+%% sed -i 's/REPLACE_WITH_ASTRIX/*/g' ClassDiagram.svg
+%% (uint16_t* as a return type misbehaves, so substitute it in later)
 classDiagram
     BaseTuneLoader <|-- FlashTuneLoader
     BaseTuneLoader <|-- EEPROMTuneLoader
@@ -9,6 +11,7 @@ classDiagram
     TunePlayer "1" --> "1" cppQueue
     TunePlayer "1" *.. "0..*" NoteData
     TunePlayer "1" *.. "0..*" RepeatData
+    TunePlayer "1" --> "1" CallbackFunction
 
     class BaseTuneLoader {
         <<abstract>>
@@ -16,7 +19,8 @@ classDiagram
     }
 
     class FlashTuneLoader {
-        +setTune(uint16_t *tune)
+        +setTune(uint16_t* tune)
+        +getTune() uint16_tREPLACE_WITH_ASTRIX
         +loadNote(uint16_t address) uint16_t
     }
 
@@ -60,6 +64,7 @@ classDiagram
         -uint32_t m_curNoteStart
         -uint32_t m_curNoteStop
         -bool m_isPlaying
+        -CallbackFunction m_callOnStop
         +TunePlayer()
         +begin(BaseTuneLoader *newTuneSource, SoundGenerator *newSoundGenerator)
         +begin()
@@ -71,6 +76,7 @@ classDiagram
         +updateLowPriority()
         +updateHighPriority()
         +isPlaying() bool
+        +setCallOnStop(CallbackFunction callbackFunction)
         -m_makeNoise()
         -m_executeRepeat(uint16_t rawNote)
     }
@@ -87,4 +93,8 @@ classDiagram
         <<private>>
         +uint16_t index
         +uint8_t count
+    }
+
+    class CallbackFunction {
+        <<typedef>>
     }

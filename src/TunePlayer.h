@@ -3,7 +3,7 @@
  * Class for playing tunes from a compressed 16 bit format.
  * Written by Jotham Gates
  * Created 12/06/2021
- * Modified 02/11/2021
+ * Modified 07/07/2022
  */
 
 #pragma once
@@ -54,6 +54,9 @@
 #define REPEAT_THRICE 2
 #define REPEAT_EVERY 3
 
+#ifdef ENABLE_CALLBACKS
+typedef void (*CallbackFunction)();
+#endif
 /**
  * Main tune playing class
  */
@@ -133,6 +136,9 @@ class TunePlayer {
                 soundGenerator->stopSound();
             }
             m_isPlaying = false;
+#ifdef ENABLE_CALLBACKS
+            m_callback();
+#endif
         }
 
         /**
@@ -142,6 +148,9 @@ class TunePlayer {
         void stop() {
             soundGenerator->stopSound();
             m_isPlaying = false;
+#ifdef ENABLE_CALLBACKS
+            m_callback();
+#endif
             m_notesQueue.flush();
             m_noteIndex = 0;
             m_nextNoteTime = 0; // So play will work immediately
@@ -156,7 +165,24 @@ class TunePlayer {
 
         BaseTuneLoader *tuneLoader;
         SoundGenerator *soundGenerator;
-        bool m_isPlaying = false;
+
+#ifdef ENABLE_CALLBACKS
+        /**
+         * Sets the function that should be called when the tune stops. This is
+         * only enabled when ENABLE_CALLBACKS is defined.
+         * 
+         * In other words, this is when isPlaying() becomes false. i.e. on the
+         * tune finishing or the stop or pause methods being called.
+         * 
+         * callbackFunction is the function to call (must not return anything
+         * and must accept no parameters).
+         * 
+         * To disable the callbacks, use setCallOnStop(NULL);
+         */
+        inline void setCallOnStop(CallbackFunction callbackFunction) {
+            m_callOnStop = callbackFunction;
+        }
+#endif
 
     private:
         /**
@@ -222,7 +248,7 @@ class TunePlayer {
 
                 case NOTE_SETTING:
                     // Set the tempo
-                    m_timebase = 2500000 / (rawNote & 0x3FF);
+                    m_timebase = 2500000 / (rawNote & 0x3FF); // bpm to us/(1/24b).
                     m_noteIndex++; // Increase the noteIndex
                     break;
 
@@ -290,6 +316,9 @@ class TunePlayer {
                     switch(noteData.note) {
                         case NOTE_END:
                             m_isPlaying = false;
+#ifdef ENABLE_CALLBACKS
+                            m_callback();
+#endif
                         case NOTE_REST:
                             soundGenerator->stopSound();
                             break;
@@ -324,12 +353,28 @@ class TunePlayer {
             m_noteIndex = newAddress;
         }
 
+#ifdef ENABLE_CALLBACKS
+        /**
+         * Calls the call on stop callback function if it is not NULL.
+         */
+        inline void m_callback() {
+            if (m_callOnStop != NULL) {
+                m_callOnStop();
+            }
+        }
+#endif
+
         cppQueue m_notesQueue = cppQueue(sizeof(NoteData), NOTES_QUEUE_MAX, FIFO);
         cppQueue m_repeatsStack = cppQueue(sizeof(RepeatData), REPEATS_MAX_CONCURRENT, LIFO);
         uint16_t m_noteIndex = 0;
-        uint32_t m_timebase = 20000;
+        uint32_t m_timebase = 20000; // us per 1/24 beats
         uint32_t m_nextNoteTime = 0;
         uint32_t m_curNoteStart = 0;
+
+#ifdef ENABLE_CALLBACKS
+        CallbackFunction m_callOnStop = NULL;
+#endif
+        bool m_isPlaying = false;
 
         // Only needed if the time has to be stopped manually
 #ifdef MANUAL_CUTOFF

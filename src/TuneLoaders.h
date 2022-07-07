@@ -5,7 +5,9 @@
  * 
  * Each loader should inherrit BaseTuneLoader and have the loadNote method.
  * 
- * Written by Jotham Gates, 12/06/2021
+ * Written by Jotham Gates
+ * Created 12/06/2021
+ * Modified 07/07/2022
  */
 
 #pragma once
@@ -35,6 +37,11 @@ class FlashTuneLoader : public BaseTuneLoader {
         /** Sets the array in program memory to load from. */
         void setTune(uint16_t *tune) {
             m_tune = tune;
+        }
+
+        /** Gets the current tune. */
+        uint16_t* getTune() {
+            return m_tune;
         }
 
         /** Returns the raw note data at the given address. */
