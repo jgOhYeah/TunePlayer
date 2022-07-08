@@ -21,7 +21,7 @@ MuseScore {
       // TODO: Text box to set the max number of notes per line
       menuPath: "Plugins.Generate TunePlayer Code"
       description: "Exports single notes into a 16 bit format for an Arduino microcontroller. See https://github.com/jgOhYeah/TunePlayer for more details"
-      version: "1.8.0"
+      version: "1.8.1"
       pluginType: "dialog"
 
       // Properties that can be changed
@@ -165,11 +165,11 @@ MuseScore {
       }
 
       function dec2bin(dec){ //From 
-            return "0b" + (dec >>> 0).toString(2);
+            return "0b" + (dec >>> 0).toString(2).padStart(16, "0");
       }
 
       function dec2hex(dec){ //From 
-            return "0x" + (dec >>> 0).toString(16);
+            return "0x" + (dec >>> 0).toString(16).padStart(4, "0");
       }
 
       function exportTempoChange(tempo) {

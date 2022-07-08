@@ -4,7 +4,7 @@ Tool to help when encoding and decoding notes in the TunePlayer library.
 
 Written by Jotham Gates
 Created 06/07/2022
-Modified 07/07/2022
+Modified 08/07/2022
 -->
 <html>
   <head>
@@ -12,23 +12,35 @@ Modified 07/07/2022
     <style>
       .input {
         background-color: lightgreen;
-        padding: 5px;
+        padding: 5px 10px;
       }
 
       .output {
+        background-color: yellowgreen;
+        padding: 5px 5px 20px 10px;
+      }
+
+      code {
         background-color: lightyellow;
         padding: 5px;
+        margin: 0 0 30px 10px;
       }
     </style>
   </head>
   <body>
     <h1>TunePlayer note calculator</h1>
-    <p>Please note that this tool requires javascript be enabled to operate. If opened directly from Github, javascript may be disabled. It is recommended that this file is downloaded and opened with a suitable web browser.</p>
+    <p>
+      This calculator allows encoding and decoding individual notes to and from the 16 bit format used by TunePlayer.
+      This is mainly intended for educational and debugging purposes. For more serious (and less tedious) purposes, see
+      <a href="MusescorePlugin.md">the Musescore plugin</a>. For details on how the notes are encoded, see the
+      <a href="NoteStructure.md">Note Structure page</a>.
+    </p>
+    <p>Please note that this tool requires javascript be enabled to operate. Open this file in a web browser to run it.</p>
 
     <h2>Decoding notes</h2>
     <div class="input">
       <h4>Input:</h4>
-      <p>Enter the code: <input type="text" id="code-input" oninput="decode()"><br>Examples: <code>0b1001101111111100</code>, <code>0xe0f0</code>, <code>0x7a78</code></p>
+      <p>Enter the code: <input type="text" id="code-input" oninput="decode()"> <i>(Examples: <code>0b1001101111111100</code>, <code>0xe0f0</code>, <code>0x7a78</code>)</i></p>
     </div>
 
     <div class="output">
@@ -122,10 +134,10 @@ Modified 07/07/2022
       decode();
     </script>
 
-    <h2>Encoding notes (not implemented yet)</h2>
+    <h2>Encoding notes</h2>
     <div class="input">
       <label for="display-input">Select the output format:</label>
-      <select name="display-input" id="display-input" oninput="encodeNote(); ">
+      <select name="display-input" id="display-input" oninput="encodeNote(); encodeRepeat(); encodeTempo(); encodeStop();">
         <option value="hexadecimal">Hexadecimal</option>
         <option value="binary">Binary</option>
         <option value="decimal">Decimal</option>
@@ -192,6 +204,7 @@ Modified 07/07/2022
     <script>
       // Encodes a playable note and displays it.
       function encodeNote() {
+        console.log("Encoding note");
         let notePitch = parseInt(document.getElementById("note-input").value);
         let noteOctave = parseInt(document.getElementById("octave-input").value);
         let noteDuration = parseInt(document.getElementById("length-input").value) - 1;
@@ -201,16 +214,21 @@ Modified 07/07/2022
         // Lifted from musescore plugin
         let noteCode = ((notePitch << 12) & 0xF000) | ((noteOctave << 9) & 0xE00) | ((noteDuration << 3) & 0x1F8) | ((noteEffect << 1) & 0x06) | (tripletTime & 0x01);
 
-        document.getElementById("note-code-output").innerHTML = dec2bin(noteCode);
+        document.getElementById("note-code-output").innerHTML = formatInt(noteCode);
       }
 
-      // From musescore plugin
-      function dec2bin(dec){ //From 
-            return "0b" + (dec >>> 0).toString(2);
-      }
-
-      function dec2hex(dec){ //From 
-            return "0x" + (dec >>> 0).toString(16);
+      function formatInt(number) {
+        let format = document.getElementById("display-input").value;
+        switch (format) {
+          case "hexadecimal":
+            return "0x" + number.toString(16).padStart(4, "0");
+          case "octal":
+            return "0" + number.toString(8);
+          case "binary":
+            return "0b" + number.toString(2).padStart(16, "0");
+          default: // Decimal
+            return number.toString(10);
+        }
       }
 
       encodeNote();
@@ -221,7 +239,7 @@ Modified 07/07/2022
       <h4>Input:</h4>
       <p>
         <label for="repeat-input">Number of times to repeat:</label>
-        <select name="repeat-input" id="repeat-input">
+        <select name="repeat-input" id="repeat-input" oninput="encodeRepeat()">
           <option value="0">Once</option>
           <option value="1">Twice</option>
           <option value="2">Three times</option>
@@ -231,26 +249,38 @@ Modified 07/07/2022
 
       <p>
         Enter the number of messages to go back:
-        <input id="go-back-input" type="number" min="1" max="1023" value="1">
+        <input id="go-back-input" type="number" min="0" max="1023" value="1" oninput="encodeRepeat()">
       </p>
     </div>
 
     <div class="output">
       <h4>Output:</h4>
-      <code id="repeat-code-code-output"></code>
+      <code id="repeat-code-output"></code>
     </div>
+
+    <script>
+      function encodeRepeat() {
+        let note = 0b1101;
+        let repeatCount = parseInt(document.getElementById("repeat-input").value);
+        let goBackAmount = parseInt(document.getElementById("go-back-input").value);
+        let noteCode = (note << 12) | (repeatCount << 10) | goBackAmount;
+        document.getElementById("repeat-code-output").innerHTML = formatInt(noteCode);
+      }
+
+      encodeRepeat();
+    </script>
 
     <h3>Set tempo</h3>
     <div class="input">
       <h4>Input:</h4>
       <p>
         Enter the effect (currently unused, set to 0):
-        <input id="tempo-effect-input" type="number" min="0" max="3" value="0">
+        <input id="tempo-effect-input" type="number" min="0" max="3" value="0" oninput="encodeTempo()">
       </p>
 
       <p>
         Enter the tempo in beats per minute:
-        <input id="tempo-bpm-input" type="number" min="0" max="1023" value="120">
+        <input id="tempo-bpm-input" type="number" min="0" max="1023" value="120" oninput="encodeTempo()">
       </p>
     </div>
 
@@ -259,12 +289,24 @@ Modified 07/07/2022
       <code id="tempo-code-output"></code>
     </div>
 
+    <script>
+      function encodeTempo() {
+        let note = 0b1110;
+        let effect = parseInt(document.getElementById("tempo-effect-input").value);
+        let tempo = parseInt(document.getElementById("tempo-bpm-input").value);
+        let noteCode = (note << 12) | (effect << 10) | tempo;
+        document.getElementById("tempo-code-output").innerHTML = formatInt(noteCode);
+      }
+
+      encodeTempo();
+    </script>
+
     <h3>End of tune</h3>
     <div class="input">
       <h4>Input:</h4>
       <p>
         Start over from the beginning:
-        <input type="checkbox">
+        <input type="checkbox" id="tune-repeat-input" oninput="encodeStop()">
       </p>
     </div>
 
@@ -273,5 +315,15 @@ Modified 07/07/2022
       <code id="end-tune-code-output"></code>
     </div>
 
+    <script>
+      function encodeStop() {
+        let note = 0b1111;
+        let repeat = document.getElementById("tune-repeat-input").checked;
+        let noteCode = (note << 12) | repeat;
+        document.getElementById("end-tune-code-output").innerHTML = formatInt(noteCode);
+      }
+
+      encodeStop();
+    </script>
   </body>
 </html>
