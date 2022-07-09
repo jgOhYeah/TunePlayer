@@ -38,6 +38,7 @@ If needed, define these before including `TunePlayer.h`.
 |    `ENABLE_CALLBACKS`    | If enabled, the `setCallOnStop` method in `TunePlayer` will be enabled. This will allow calling a function when the tune stops playing. An example use is to load and start playing the next tune.                                                                                                                       |   Undefined   |
 |    `NOTES_QUEUE_MAX`     | The number of notes that are buffered in the queue of notes to play at a time. If loading notes and playing in different tasks with different priorities, increasing this will allow the loading of notes to happen less frequently, but will increase the delay from calling `play` to sound actually being produced    |       4       |
 | `REPEATS_MAX_CONCURRENT` | The maximum number of repeats that will be expected at a time (levels of repeats inside repeats)                                                                                                                                                                                                                         |       4       |
+|     `DEFAULT_TEMPO`      | The default tempo in beats per minute to play at before a set tempo note is received.                                                                                                                                                                                                                                    |      120      |
 
 ## `TunePlayer` Class
 This class does handles interpreting notes given by a `TuneLoader` class, timing and passing the correct note to play on to a `SoundGenerator` object.
@@ -84,7 +85,7 @@ Stops making noise, but keeps the queue of notes and pointers to the next note. 
 If `holdNote` is `true`, the note will be played for its normal time (not cut off immediately), or for `SoundGenerators` that do not stop automatically like `TimerOneSound`, will keep playing forever.
 
 ##### `void stop()`
-Stops making noise, clears the queue of notes and resets the notes address back to the start of the song. This means on calling `play` next time, the tune will restart from the beginning.
+Stops making noise, clears the queue of notes and resets the notes address back to the start of the song. This also resets the tempo to the default (`DEFAULT_TEMPO` bpm). This means on calling `play` next time, the tune will restart from the beginning.
 
 Calling `stop` can also be used when changing tunes - see the [jukebox example](../examples/jukebox/jukebox.ino).
 

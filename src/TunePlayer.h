@@ -23,6 +23,9 @@
 #ifndef REPEATS_MAX_CONCURRENT
     #define REPEATS_MAX_CONCURRENT 4
 #endif
+#ifndef DEFAULT_TEMPO
+    #define DEFAULT_TEMPO 120
+#endif
 
 // Notes
 #define NOTE_C 0
@@ -143,7 +146,8 @@ class TunePlayer {
 
         /**
          * Stops tune playback, clears the queue and sets the note address back
-         * to the start. If play is called, the tune restarts from the beginning.
+         * to the start. This also resets the tempo to the default. If play is
+         * called, the tune restarts from the beginning.
          */
         void stop() {
             soundGenerator->stopSound();
@@ -154,6 +158,7 @@ class TunePlayer {
             m_notesQueue.flush();
             m_noteIndex = 0;
             m_nextNoteTime = 0; // So play will work immediately
+            m_timebase = 2500000 / DEFAULT_TEMPO; // Set tempo back to the default
         }
 
         /**
@@ -367,7 +372,7 @@ class TunePlayer {
         cppQueue m_notesQueue = cppQueue(sizeof(NoteData), NOTES_QUEUE_MAX, FIFO);
         cppQueue m_repeatsStack = cppQueue(sizeof(RepeatData), REPEATS_MAX_CONCURRENT, LIFO);
         uint16_t m_noteIndex = 0;
-        uint32_t m_timebase = 20000; // us per 1/24 beats
+        uint32_t m_timebase = 2500000 / DEFAULT_TEMPO; // us per 1/24 beats
         uint32_t m_nextNoteTime = 0;
         uint32_t m_curNoteStart = 0;
 
