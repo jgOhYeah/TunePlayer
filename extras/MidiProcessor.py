@@ -13,11 +13,12 @@ from __future__ import annotations
 import mido
 import sys
 import argparse
-from typing import List, TypeVar, Union
+from typing import List, TypeVar, Union, Callable
 T = TypeVar('T')
 
 MIDI_ON = "note_on"
 MIDI_OFF = "note_off"
+MIDI_NOTES = 128
 
 def select_by_index(src:List[T], indices:List[int]) -> List[T]:
     """Filters a list to only include elements whose index is in the index
@@ -46,6 +47,115 @@ def filter_channels(track:mido.MidiTrack, channels:List[int]) -> mido.MidiTrack:
         return not has_channel(msg) or  msg.channel in channels
     
     return mido.MidiTrack(filter(allow_through, track))
+
+# def remove_multiple_on(track:mido.MidiTrack) -> mido.MidiTrack:
+#     """Makes sure that no note is turned on multiples times at once across all
+#     channels."""
+#     # NOTE: Will end up with lots of 0 length notes if more than 2 notes start together.
+#     notes = [False] * MIDI_NOTES
+#     out_track = mido.MidiTrack()
+#     message:mido.Message
+#     for message in track:
+#         if message.type == MIDI_OFF:
+#             # Cancel the record of the note being on
+#             notes[message.note] = False
+#         elif message.type == MIDI_ON:
+#             if notes[message.note]:
+#                 # Currently on, been told to turn on again.
+#                 # Stop the current note playing and restart it.
+#                 out_track.append(message.copy(type=MIDI_OFF, velocity=0))
+#                 out_track.append(message.copy(time=0))
+#             else:
+#                 # Was off, can turn on as normal
+#                 out_track.append(message)
+#             notes[message.note] = True
+#         else:
+#             out_track.append(message)
+    
+#     return out_track
+
+
+def group_by_time(track:mido.MidiTrack) -> List[List[mido.Message]]:
+    """Groups messages in a track into messages that are sent at the same time.
+    The time of the first element of each group is the time delta from the
+    previous. All other times are 0 as they happen at the same time as the
+    first, so 0 time delta.
+    """
+    track_iter = iter(track)
+    messages = []
+    try:
+        group = [next(track_iter)] # First message
+        while True:
+            # Until we run out of messages
+            cur = next(track_iter)
+            while cur.time == 0:
+                # While we still have messages sent at the same time (time = 0)
+                group.append(cur)
+                cur = next(track_iter)
+
+            # Jump in time. Start next group
+            messages.append(group)
+            group = [cur]
+    except StopIteration:
+        # Final save if needed
+        if group:
+            messages.append(group)
+    
+    return messages
+
+def is_note_message(message:mido.Message) -> bool:
+    """Returns True if a message is a note_on or note_off instruction."""
+    return message.type == MIDI_OFF or message.type == MIDI_ON
+
+def invert(func):
+    def inverted_func(*args, **kwargs):
+        return not func(*args, **kwargs)
+    
+    return inverted_func
+
+def merge(groups:List[List[mido.Message]],
+    notes_selector:Callable[[List[mido.Message]], List[mido.Message]]
+    ) -> mido.MidiTrack:
+    """Merges messages into one monotone track."""
+    out_track = mido.MidiTrack()
+    for group in groups:
+        timedelta = group[0].time
+        group[0] = group[0].copy(time=0) # Remove the time delta
+
+        # Add non-note messages
+        not_notes = list(filter(invert(is_note_message), group))
+        if not_notes:
+            not_notes[0] = not_notes[0].copy(time=timedelta) # Add the time delay
+            out_track.extend(not_notes)
+        
+        # Get all note on events.
+        notes = list(filter(is_note_message, group))
+        if notes:
+            notes = notes_selector(notes)
+            if not notes:
+                raise NotImplementedError("Selecting no note is not implemented yet")
+    
+            # Add the time if needed
+            if not not_notes:
+                notes[0] = notes[0].copy(time=timedelta) # Add the time delay if not 
+
+            out_track.extend(notes)
+    
+    return out_track
+
+def select_notes(notes:List[mido.Message], keys:List[bool]) -> List[mido.Message]:
+    out = []
+    for note in notes:
+        if keys[note.channel]:
+            out.append(mido.Message(
+                MIDI_OFF,
+                channel = note.channel,
+                note = note.note,
+                velocity = 0,
+                time = 0
+            ))
+            
+            out.append(mido.)
 
 def merge_to_monotone(track:mido.MidiTrack) -> mido.MidiTrack:
     """Merges a track to a monotone (only one note active at a time).
@@ -124,13 +234,15 @@ def process(in_filename:str, out_filename:str, tracks_include:List[int],
 
     # The actual processing
     merged_track = merge_to_track(midi_file.tracks, tracks_include)
-    filtered = filter_channels(merged_track, channels_include)
-    monotone_track = merge_to_monotone(filtered)
-    out_track = merge_to_channel(monotone_track, target_channel)
+    # filtered = filter_channels(merged_track, channels_include)
+    # monotone_track = merge_to_monotone(filtered)
+    # out_track = merge_to_channel(monotone_track, target_channel)
     
-    # Save midi file
-    midi_file.tracks = [out_track]
-    midi_file.save(filename=out_filename)
+    # # Save midi file
+    # midi_file.tracks = [out_track]
+    # midi_file.save(filename=out_filename)
+
+    group_by_time(merged_track)
 
 def parse_args() -> argparse.Namespace:
     """Parser for the command line interface arguments."""
