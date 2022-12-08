@@ -7,7 +7,7 @@ Written for the TunePlayer library (https://github.com/jgOhYeah/TunePlayer)
 
 Written by Jotham Gates
 Created 22/11/2022
-Modified 24/11/2022
+Modified 08/12/2022
 """
 from __future__ import annotations
 import mido
@@ -42,11 +42,17 @@ def merge_to_channel(track:mido.MidiTrack, channel:int) -> mido.MidiTrack:
 def filter_channels(track:mido.MidiTrack, channels:List[int]) -> mido.MidiTrack:
     """Filters a track to only include messages whose channel appears in the
     channels list."""
-    def allow_through(msg:mido.Message) -> bool:
-        # if msg
-        return not has_channel(msg) or  msg.channel in channels
+    out = []
+    carry = 0
+    for msg in track:
+        if not has_channel(msg) or  msg.channel in channels:
+            # Allow through
+            out.append(msg.copy(time=msg.time+carry))
+            carry = 0
+        else:
+            carry += msg.time
     
-    return mido.MidiTrack(filter(allow_through, track))
+    return out
 
 # def remove_multiple_on(track:mido.MidiTrack) -> mido.MidiTrack:
 #     """Makes sure that no note is turned on multiples times at once across all
@@ -113,13 +119,14 @@ def invert(func):
     
     return inverted_func
 
-def merge(groups:List[List[mido.Message]],
-    notes_selector:Callable[[List[mido.Message]], List[mido.Message]]
-    ) -> mido.MidiTrack:
+def merge(groups:List[List[mido.Message]], selector:Callable) -> mido.MidiTrack:
     """Merges messages into one monotone track."""
     out_track = mido.MidiTrack()
+    carry = 0
+    keys = [0]*MIDI_NOTES
+    stack = []
     for group in groups:
-        timedelta = group[0].time
+        timedelta = group[0].time + carry
         group[0] = group[0].copy(time=0) # Remove the time delta
 
         # Add non-note messages
@@ -130,83 +137,115 @@ def merge(groups:List[List[mido.Message]],
         
         # Get all note on events.
         notes = list(filter(is_note_message, group))
+        new_notes = []
         if notes:
-            notes = notes_selector(notes)
-            if not notes:
-                raise NotImplementedError("Selecting no note is not implemented yet")
-    
+            # Select notes to add
+            new_notes = selector(notes, keys, stack)
             # Add the time if needed
-            if not not_notes:
-                notes[0] = notes[0].copy(time=timedelta) # Add the time delay if not 
+            if new_notes and not not_notes:
+                new_notes[0] = new_notes[0].copy(time=timedelta) # Add the time delay if not 
 
-            out_track.extend(notes)
-    
+            out_track.extend(new_notes)
+
+        # Carry time over if needed
+        if not_notes or new_notes:
+            # Added at least one note, so can clear the carry over time
+            carry = 0
+
     return out_track
 
-def select_notes(notes:List[mido.Message], keys:List[bool]) -> List[mido.Message]:
-    out = []
-    for note in notes:
-        if keys[note.channel]:
-            out.append(mido.Message(
-                MIDI_OFF,
-                channel = note.channel,
-                note = note.note,
-                velocity = 0,
-                time = 0
-            ))
-            
-            out.append(mido.)
+def select_notes_once_simple(notes:List[mido.Message], keys:List[int]) -> List[mido.Message]:
+    """Makes sure a note is played only once.
 
-def merge_to_monotone(track:mido.MidiTrack) -> mido.MidiTrack:
-    """Merges a track to a monotone (only one note active at a time).
+    Starts on the first call to start a message, only stops on the last
+    matching finish.
 
-    Metadata and control messages are passed through
-
-    Plays only the latest note. i.e.
-      A#     ---      ---
-      A  ---   ------------
-    Will be converted to:
-      A#     --       ---
-      A  ---   -------
     Args:
-        track (mido.MidiTrack): The input track
+        notes (List[mido.Message]): List of notes starting and stopping at this
+                                    instant in time.
+        keys (List[int]): Count of the number of times each note has been
+                          started at the current point in time. Can be mutated
+                          to pass it on to the next time.
 
     Returns:
-        mido.MidiTrack: The output track with only one note at a time.
+        List[mido.Message]: The note messages to insert.
     """
-    current_note:mido.Message = None
-    out_track = mido.MidiTrack()
-    message:mido.Message
-    for message in track:
-        # print(repr(message))
-        if message.type == MIDI_OFF and (not current_note or current_note.note == message.note):
-            # Stop the current note
-            out_track.append(message)
-            current_note = None
-        elif message.type == MIDI_ON:
-            # print(message)
-            if current_note:
-                # Need to stop current note before starting a new one.
-                out_track.append(
-                    mido.Message(
-                        MIDI_OFF,
-                        channel = current_note.channel,
-                        note = current_note.note,
-                        velocity = 0,
-                        time = message.time
-                    )
-                )
-                out_track.append(message.copy(time=0))
-            else:
-                # Nothing currently playing.
-                out_track.append(message)
-            current_note = message
-        else:
-            # Metadata, control, pitch wheel...
-            out_track.append(message)
+    out = []
+    for note in notes:
+        if note.type == MIDI_ON:
+            if keys[note.note]:
+                # Note already playing
+                out.append(note)
+            
+            keys[note.note] += 1
+        elif note.type == MIDI_OFF:
+            if keys[note.note] > 0:
+                keys[note.note] -= 1
+                if keys[note.note] == 0:
+                    out.append(note)
     
-    # Done processing
-    return out_track
+    return out
+
+def select_notes_once_advanced(notes:List[mido.Message], keys:List[int], stack:List[mido.Message], forgetful:bool=False) -> List[mido.Message]:
+    """Makes sure only one note at a time is played.
+
+    Starts on the first call to start a message, only stops on the last
+    matching finish.
+    """
+    out = []
+
+    # Split into ons and offs
+    note_ons = list(filter(lambda note: note.type == MIDI_ON, notes))
+    note_offs = list(filter(lambda note: note.type == MIDI_OFF, notes))
+
+    restart_note = False
+    # Stop the currently playing note if needed
+    if note_offs and stack:
+        # Stop playing if the current note should be stopped
+        look_for = stack[-1]
+        for note in note_offs:
+            if note.note == look_for.note:
+                out.append(note)
+                
+                if not forgetful:
+                    # Flag to restart the last note
+                    restart_note = True
+                
+                break
+        
+        # Remove all stopped notes from the right end of the stack.
+        for note in note_offs:
+            for i, stack_note in enumerate(reversed(stack)):
+                if stack_note.note == note.note:
+                    stack.pop(len(stack)-1-i)
+                    break
+
+    
+    # Sort the notes and pick the highest to play
+    note_ons.sort(key=lambda note: note.note)
+    if note_ons:
+        # Stop the old not if playing and add the new notes to the stack
+        if stack:
+            # Already playing
+            current = stack[-1]
+            # out.append(current.copy(type=MIDI_OFF))
+            out.append(mido.Message(
+                MIDI_OFF,
+                channel = current.channel,
+                note = current.note,
+                velocity = 0,
+                time = current.time
+            ))
+        
+        # Play the new note
+        chosen = note_ons[-1]
+        stack.extend(note_ons)
+        out.append(chosen)
+    elif restart_note and stack:
+        out.append(stack[-1])
+
+
+    return out
 
 def process(in_filename:str, out_filename:str, tracks_include:List[int],
     tracks_exclude:List[int], channels_include:List[int], channels_exclude:List[int],
@@ -219,7 +258,7 @@ def process(in_filename:str, out_filename:str, tracks_include:List[int],
 
     # Work out what tracks to include
     if not tracks_include:
-        tracks_include = range(len(midi_file.tracks))
+        tracks_include = list(range(len(midi_file.tracks)))
     
     for i in tracks_exclude:
         tracks_include.remove(i)
@@ -234,15 +273,14 @@ def process(in_filename:str, out_filename:str, tracks_include:List[int],
 
     # The actual processing
     merged_track = merge_to_track(midi_file.tracks, tracks_include)
-    # filtered = filter_channels(merged_track, channels_include)
-    # monotone_track = merge_to_monotone(filtered)
-    # out_track = merge_to_channel(monotone_track, target_channel)
+    filtered_channels = filter_channels(merged_track, channels_include)
+    merged_channels = merge_to_channel(filtered_channels, 0)
     
-    # # Save midi file
-    # midi_file.tracks = [out_track]
-    # midi_file.save(filename=out_filename)
+    out_track = merge(group_by_time(merged_channels), select_notes_once_advanced)
 
-    group_by_time(merged_track)
+    # # Save midi file
+    midi_file.tracks = [out_track]
+    midi_file.save(filename=out_filename)
 
 def parse_args() -> argparse.Namespace:
     """Parser for the command line interface arguments."""
