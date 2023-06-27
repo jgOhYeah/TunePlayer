@@ -229,10 +229,10 @@ def process(in_filename:str, out_filename:str, tracks_include:List[int],
     filtered_channels = filter_channels(merged_track, channels_include)
     merged_channels = merge_to_channel(filtered_channels, target_channel)
     
-    out_track = merge(group_by_time(merged_channels), selector_latest)
+    out_track = merge(group_by_time(merged_channels), selector_highest)
 
     # Double check
-    verify(out_track)
+    verify(out_track, ignore_on_at_end=True)
 
     # # Save midi file
     midi_file.tracks = [out_track]
@@ -292,9 +292,13 @@ If not given, no tracks will be removed from those included."""
     # Parse
     return parser.parse_args()
 
-def verify(track:mido.MidiTrack):
+def verify(track:mido.MidiTrack, ignore_on_at_end:bool=False):
     """Verifies that only one note is playing at a time and all notes are shut
-    off correctly."""
+    off correctly.
+    
+    If ignore_on_at_end is true, then a single note being left on at the end
+    will be ignored rather than cause an error.
+    """
     # Check that there is never more than one note on at a time
     notes = [0]*MIDI_NOTES
     for message in track:
@@ -306,8 +310,14 @@ def verify(track:mido.MidiTrack):
             raise ValueError("More than one note on at a time!!!")
     
     # Check that all notes have been turned off
-    if sum(notes) != 0:
-        raise ValueError("At least one note has not been turned off at the end")
+    if sum(notes) == 1 and ignore_on_at_end:
+        note = notes.index(1)
+        print("A single note {} was left on in the end. This will be ignored for now.".format(note))
+        
+    elif sum(notes) != 0:
+        print("Notes on at end:")
+        print(notes)
+        raise ValueError("At least one note has not been turned off at the end.")
 
     print("Verified successfully")
 

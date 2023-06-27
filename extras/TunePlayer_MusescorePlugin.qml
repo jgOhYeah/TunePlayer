@@ -6,7 +6,7 @@
  * 
  * Written by Jotham Gates
  * Created 06/04/2020
- * Modified 02/11/2021
+ * Modified 27/06/2023
  */
 
 // TODO: Stop command at end when a repeat is the last time
@@ -21,7 +21,7 @@ MuseScore {
       // TODO: Text box to set the max number of notes per line
       menuPath: "Plugins.Generate TunePlayer Code"
       description: "Exports single notes into a 16 bit format for an Arduino microcontroller. See https://github.com/jgOhYeah/TunePlayer for more details"
-      version: "1.8.1"
+      version: "1.8.2"
       pluginType: "dialog"
 
       // Properties that can be changed
@@ -165,11 +165,20 @@ MuseScore {
       }
 
       function dec2bin(dec){ //From 
-            return "0b" + (dec >>> 0).toString(2).padStart(16, "0");
+            return "0b" + padStart((dec >>> 0).toString(2), 16, "0");
       }
 
       function dec2hex(dec){ //From 
-            return "0x" + (dec >>> 0).toString(16).padStart(4, "0");
+            return "0x" + padStart((dec >>> 0).toString(16), 4, "0");
+      }
+
+      // Replicates the functionality of String.padStart as Musecore did not
+      // seem happy with this being called sometimes.
+      function padStart(str, len, beginning) {
+            while (str.length < len) {
+                  str = beginning + str;
+            }
+            return str;
       }
 
       function exportTempoChange(tempo) {
