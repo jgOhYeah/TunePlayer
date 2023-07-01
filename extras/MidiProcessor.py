@@ -92,7 +92,7 @@ def invert(func):
     
     return inverted_func
 
-def merge(groups:List[List[mido.Message]], selector:Callable) -> mido.MidiTrack:
+def merge(groups:List[List[mido.Message]], selector:Callable, forgetful:bool) -> mido.MidiTrack:
     """Merges messages into one monotone track."""
     out_track = mido.MidiTrack()
     carry = 0
@@ -113,7 +113,7 @@ def merge(groups:List[List[mido.Message]], selector:Callable) -> mido.MidiTrack:
         new_notes = []
         if notes:
             # Select notes to add
-            new_notes = select_notes_helper(notes, stack, selector)
+            new_notes = select_notes_helper(notes, stack, selector, forgetful)
             # Add the time if needed
             if new_notes and not not_notes:
                 new_notes[0] = new_notes[0].copy(time=timedelta) # Add the time delay if not 
@@ -200,14 +200,25 @@ def selector_earliest(notes:List[mido.Message]):
     """Preferences the earliest notes."""
     notes.reverse()
 
+selectors = {
+    "highest": selector_highest,
+    "lowest": selector_lowest,
+    "latest": selector_latest,
+    "earliest": selector_earliest
+}
+
 def process(in_filename:str, out_filename:str, tracks_include:List[int],
     tracks_exclude:List[int], channels_include:List[int], channels_exclude:List[int],
-    target_channel:int) -> None:
+    target_channel:int, selector:Callable[[List[mido.Message]]], forgetful:bool) -> None:
     """Reads a midi file, filters and merges the tracks, filters the channels,
     makes it monotone, maps all messages to one channel and saves the output in
     a file."""
     # Load the file
-    midi_file = mido.MidiFile(in_filename)
+    try:
+        midi_file = mido.MidiFile(in_filename)
+    except FileNotFoundError:
+        print("Could not open '{}'. Stopping".format(in_filename))
+        return
 
     # Work out what tracks to include
     if not tracks_include:
@@ -223,20 +234,25 @@ def process(in_filename:str, out_filename:str, tracks_include:List[int],
         channels_include.remove(i)
     
     print("Including channels:", channels_include)
+    print("Target channel is {}.".format(target_channel))
 
     # The actual processing
     merged_track = merge_to_track(midi_file.tracks, tracks_include)
     filtered_channels = filter_channels(merged_track, channels_include)
     merged_channels = merge_to_channel(filtered_channels, target_channel)
     
-    out_track = merge(group_by_time(merged_channels), selector_highest)
+    out_track = merge(group_by_time(merged_channels), selector, forgetful)
 
     # Double check
     verify(out_track, ignore_on_at_end=True)
 
     # # Save midi file
     midi_file.tracks = [out_track]
-    midi_file.save(filename=out_filename)
+    try:
+        midi_file.save(filename=out_filename)
+    except Exception as e:
+        print("Could not save to '{}' as {}. Stopping".format(out_filename, e))
+        return
 
 def parse_args() -> argparse.Namespace:
     """Parser for the command line interface arguments."""
@@ -249,40 +265,86 @@ def parse_args() -> argparse.Namespace:
     )
 
     # Add arguments
-    parser.add_argument(
+    # Channels
+    channels = parser.add_argument_group(
+        "MIDI Channels",
+        "Filter out and select MIDI channels from the input file. Channel 9 is\
+ usually a drum track."
+    )
+    channels.add_argument(
         "-a", "--add-channels",
         action="extend", nargs="*", type=int,
         default=list(range(16)),
         help="""Channels that should be included in processing.
 If not given, all channels will be included."""
     )
-    parser.add_argument(
+    channels.add_argument(
         "-r", "--remove-channels",
         action="extend", nargs="*", type=int,
         default=[],
         help="""Channels that should not be included in processing.
 If not given, no channels will be removed from those included."""
     )
-    parser.add_argument(
+
+    # Tracks
+    tracks = parser.add_argument_group(
+        "MIDI Tracks",
+        "Filter out and select MIDI tracks from the input file"
+    )
+    tracks.add_argument(
         "-A", "--add-tracks",
         action="extend", nargs="*", type=int,
         default=None,
         help="""Tracks that should be included in processing.
 If not given, all tracks will be included."""
     )
-    parser.add_argument(
+    tracks.add_argument(
         "-R", "--remove-tracks",
         action="extend", nargs="*", type=int,
         default=[],
         help="""Tracks that should not be included in processing.
 If not given, no tracks will be removed from those included."""
     )
-    parser.add_argument(
+
+    # Processing
+    processing = parser.add_argument_group(
+        "Processing options",
+        "How the MIDI file will be processed. Different options will work best\
+ with different files."
+    )
+    processing.add_argument(
+        "-m", "--method",
+        action="store", nargs=1, type=str,
+        choices=selectors.keys(),
+        default=["highest"],
+        help="What method to use when prioritising several notes that start at\
+ the same time."
+    )
+    processing.add_argument(
+        "-t", "--target-channel",
+        action="store", type=int,
+        default=0,
+        help="The channel that the output will be placed in."
+    )
+    processing.add_argument(
+        "-f", "--forgetful",
+        action="store_true",
+        help="Do not return to previously playing notes upon the end of the \
+    current note. If not provided, a stack is used to return to previously \
+    playing notes when the current one ends."
+    )
+
+    # IO
+    files = parser.add_argument_group(
+        "Files",
+        "The input and output files to use"
+    )
+    files.add_argument(
         "-i", "--input",
-        action='store', nargs=1, required=True,
+        action="store", nargs=1, required=True,
         help="Input file."
     )
-    parser.add_argument(
+    files.add_argument(
         "-o", "--output",
         action='store', nargs=1,
         default=["output.mid"],
@@ -324,6 +386,10 @@ def verify(track:mido.MidiTrack, ignore_on_at_end:bool=False):
 if __name__ == "__main__":
     namespace = parse_args()
     # print(namespace)
+    print("When multiple notes start at the same time, the {} note will be selected.".format(namespace.method[0]))
+    if namespace.forgetful:
+        print("Forgetful mode enabled. There may be unexpected periods of silence in the output.")
+
     process(
         in_filename=namespace.input[0],
         out_filename=namespace.output[0],
@@ -331,5 +397,7 @@ if __name__ == "__main__":
         tracks_exclude=namespace.remove_tracks,
         channels_include=namespace.add_channels,
         channels_exclude=namespace.remove_channels,
-        target_channel=0
+        target_channel=namespace.target_channel,
+        selector=selectors[namespace.method[0]],
+        forgetful=namespace.forgetful
     )
