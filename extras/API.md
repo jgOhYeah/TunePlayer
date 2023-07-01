@@ -32,11 +32,13 @@ Excuse the probably not proper arrows, but better than nothing.
 If needed, define these before including `TunePlayer.h`.
 
 |        Definition        | Comment                                                                                                                                                                                                                                                                                                                  | Default value |
-|:------------------------:|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:-------------:|
+| :----------------------: | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-----------: |
 |     `MANUAL_CUTOFF`      | If defined, the `stopSound` method of the `SoundGenerator` object will be called whenever the note ends. This is not necessary for implementations that stop sound automatically like `ToneSound`, but is required for the likes of `TimerOnesound` that will keep playing until stopped.                                |   Undefined   |
 |     `PRECISE_FREQS`      | If defined and using `ToneSound`, every single frequency of each note is stored as an array and loaded. This is still limited to integer values, but may be sometimes marginally more accurate than the default method of halving from an array containing only the highest notes, although a lot less memory efficient. |   Undefined   |
+|    `ENABLE_CALLBACKS`    | If enabled, the `setCallOnStop` method in `TunePlayer` will be enabled. This will allow calling a function when the tune stops playing. An example use is to load and start playing the next tune.                                                                                                                       |   Undefined   |
 |    `NOTES_QUEUE_MAX`     | The number of notes that are buffered in the queue of notes to play at a time. If loading notes and playing in different tasks with different priorities, increasing this will allow the loading of notes to happen less frequently, but will increase the delay from calling `play` to sound actually being produced    |       4       |
 | `REPEATS_MAX_CONCURRENT` | The maximum number of repeats that will be expected at a time (levels of repeats inside repeats)                                                                                                                                                                                                                         |       4       |
+|     `DEFAULT_TEMPO`      | The default tempo in beats per minute to play at before a set tempo note is received.                                                                                                                                                                                                                                    |      120      |
 
 ## `TunePlayer` Class
 This class does handles interpreting notes given by a `TuneLoader` class, timing and passing the correct note to play on to a `SoundGenerator` object.
@@ -49,10 +51,10 @@ TunePlayer tune;
 ```
 
 #### Attributes
-|       Name       |     Data Type     | Comments                                                                                  |   Default   |
-|:----------------:|:-----------------:|:------------------------------------------------------------------------------------------|:-----------:|
-|   `tuneLoader`   | `BaseTuneLoader*` | Pointer to an object that can load and return notes to play                               | unspecified |
-| `soundGenerator` | `SoundGenerator*` | Pointer to an object that can turn notes into sound.                                      | unspecified |
+|       Name       |     Data Type     | Comments                                                    |   Default   |
+| :--------------: | :---------------: | :---------------------------------------------------------- | :---------: |
+|   `tuneLoader`   | `BaseTuneLoader*` | Pointer to an object that can load and return notes to play | unspecified |
+| `soundGenerator` | `SoundGenerator*` | Pointer to an object that can turn notes into sound.        | unspecified |
 
 #### Methods
 ##### `void begin(BaseTuneLoader *newTuneLoader, SoundGenerator *newSoundGenerator)`
@@ -83,12 +85,37 @@ Stops making noise, but keeps the queue of notes and pointers to the next note. 
 If `holdNote` is `true`, the note will be played for its normal time (not cut off immediately), or for `SoundGenerators` that do not stop automatically like `TimerOneSound`, will keep playing forever.
 
 ##### `void stop()`
-Stops making noise, clears the queue of notes and resets the notes address back to the start of the song. This means on calling `play` next time, the tune will restart from the beginning.
+Stops making noise, clears the queue of notes and resets the notes address back to the start of the song. This also resets the tempo to the default (`DEFAULT_TEMPO` bpm). This means on calling `play` next time, the tune will restart from the beginning.
 
 Calling `stop` can also be used when changing tunes - see the [jukebox example](../examples/jukebox/jukebox.ino).
 
 ##### `inline bool isPlaying()`
 Returns true if a tune is currently being played, otherwise false.
+
+##### `inline void setCallOnStop(CallbackFunction callbackFunction)`
+Sets the function that should be called when the tune stops. This is only enabled when `ENABLE_CALLBACKS` is defined.
+
+In other words, this is when `isPlaying()` becomes false. i.e. on the tune finishing or the `stop` or `pause` methods being called.
+
+`callbackFunction` is the function to call (must not return anything and must accept no parameters).
+
+To disable the callbacks, use `setCallOnStop(NULL);`
+
+###### Example
+```c++
+#define ENABLE_CALLBACKS
+// ...
+
+void myCallbackFunction() {
+    Serial.println(F("Tune has stopped playing"));
+}
+
+// To register
+tune.setCallOnStop(myCallbackFunction());
+
+// To deregister
+tune.setCallOnStop(NULL);
+```
 
 ## `BaseTuneLoader` Abstract Class
 Helper classes for `TunePlayer` that help with loading of notes from required sources. Each loader should inherrit `BaseTuneLoader` and have the `loadNote` method at least.
@@ -101,7 +128,7 @@ None
 Placeholder for if there is any initialisation required.
 
 ##### `virtual uint16_t loadNote(uint16_t address)`
-Placeholder for the method that loads a 2 byte integer at address `address` in the song and returns it. The first note is *0*, the last note is *number of notes - 1*.
+Placeholder for the method that loads a 2 byte integer at address `address` in the song and returns it. The first note is address *0*, the last note is *number of notes - 1*.
 
 ### `FlashTuneLoader` Derived Class
 Uses the `PROGMEM` feature of AVR chips to load tunes stored in the program memory.
@@ -112,6 +139,9 @@ None
 #### Methods
 ##### `void setTune(uint16_t *tune)`
 Sets the array in program memory to load from.
+
+##### `uint16_t* getTune()`
+Returns the array in program memory that the tune is being loaded from.
 
 ###### Example
 ```c++
@@ -164,3 +194,7 @@ See [this code](https://github.com/jgOhYeah/BikeHorn/blob/main/BikeHorn/soundGen
 ### `MIDISound` Derived Class
 TODO: Not implemented yet.
 Outputs a midi instruction to play the note.
+
+### `TeeSound` Derived Class
+TODO: Not implemented yet.
+Splits sound inputs into multiple outputs to allow many SoundGenerator objects to be controlled at a time (in unison).
