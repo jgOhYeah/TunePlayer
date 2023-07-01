@@ -8,6 +8,7 @@ Each note is stored as a 16 bit integer and the method of loading tunes and how 
 - [Musescore Plugin](extras/MusescorePlugin.md)
 - [API Reference](extras/API.md)
 - [Note structure](extras/NoteStructure.md)
+- [MIDI Processor](extras/MidiProcessor.md)
 - [Examples](examples)
 
 This library is inspired (but not compatible with) the [PICAXE tune command](https://picaxe.com/basic-commands/digital-inputoutput/tune/)
