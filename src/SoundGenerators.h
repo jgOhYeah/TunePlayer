@@ -89,6 +89,7 @@ class ToneSound : public SoundGenerator {
 /**
  * Play using Timer One (more control, but limited to pin 9)
  */
+#if defined AVR || defined TIMER_ONE_SOUND
 class TimerOneSound : public SoundGenerator {
     public:
         TimerOneSound() {}
@@ -129,3 +130,4 @@ class TimerOneSound : public SoundGenerator {
             return counter >> 1;
         }
 };
+#endif

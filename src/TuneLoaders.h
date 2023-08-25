@@ -35,12 +35,12 @@ class FlashTuneLoader : public BaseTuneLoader {
         FlashTuneLoader() {}
 
         /** Sets the array in program memory to load from. */
-        void setTune(uint16_t *tune) {
+        void setTune(const uint16_t *tune) {
             m_tune = tune;
         }
 
         /** Gets the current tune. */
-        uint16_t* getTune() {
+        const uint16_t* getTune() {
             return m_tune;
         }
 
@@ -51,7 +51,7 @@ class FlashTuneLoader : public BaseTuneLoader {
         }
 
     private:
-        uint16_t *m_tune; // Pointer to the start of the array in flash
+        const uint16_t *m_tune; // Pointer to the start of the array in flash
 };
 
 /* TODO: EEPROM Tune Loader */
