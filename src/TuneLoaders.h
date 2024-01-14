@@ -24,7 +24,9 @@ class BaseTuneLoader {
         virtual void begin() {}
 
         /** Returns the raw note data (16 bits) at the given address */
-        virtual uint16_t loadNote(uint16_t address) {}
+        virtual uint16_t loadNote(uint16_t address) {
+            return 0;
+        }
 };
 
 /**

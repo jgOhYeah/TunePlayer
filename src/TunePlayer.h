@@ -324,6 +324,7 @@ class TunePlayer {
 #ifdef ENABLE_CALLBACKS
                             m_callback();
 #endif
+                            /* fallthrough */
                         case NOTE_REST:
                             soundGenerator->stopSound();
                             break;
