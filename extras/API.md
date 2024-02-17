@@ -188,9 +188,11 @@ Takes a midi note (*0-127*) and calls `playNote` with the correct note and octav
 Uses the built in Arduino [`tone`](https://www.arduino.cc/reference/en/language/functions/advanced-io/tone/) function.
 
 ### `TimerOneSound` Derived Class
-Uses Timer One in avr based boards (atmega328p specifically). This offers a low more control over things such as the duty cycle. This class can be inherited by another class that overrides the `uint16_t m_compareValue(uint16_t counter)` method that returns the value at which the pin should go low when using fast pwm mode. `counter` is the value that the timer will reset at.
+Uses Timer One in avr based boards (atmega328p and atmega32u4 specifically). This offers a low more control over things such as the duty cycle. This class can be inherited by another class that overrides the `uint16_t m_compareValue(uint16_t counter)` method that returns the value at which the pin should go low when using fast pwm mode. `counter` is the value that the timer will reset at.
 
 See [this code](https://github.com/jgOhYeah/BikeHorn/blob/main/BikeHorn/soundGeneration.h) for an example (and original target) for the Timer One method.
+
+One the Arduino Uno, Nano and Micro, sound is output on pin D9 (PB1 for atmega328p, PB5 for atmega32u4).
 
 ### `MIDISound` Derived Class
 TODO: Not implemented yet.

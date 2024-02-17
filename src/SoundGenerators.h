@@ -96,7 +96,11 @@ class TimerOneSound : public SoundGenerator {
 
         /** Sets the pin as an output */
         void begin() {
+#ifdef __AVR_ATmega32U4__
+            DDRB |= (1 << PB5); // Set PB1 to be an output (Pin9 Arduino Micro)
+#else
             DDRB |= (1 << PB1); // Set PB1 to be an output (Pin9 Arduino UNO)
+#endif
         }
 
         /** Plays a given note. playTime is ignored. */
