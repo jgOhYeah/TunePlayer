@@ -117,7 +117,11 @@ class TimerOneSound : public SoundGenerator {
             // Shutdown timer
             TCCR1A = 0;
             TCCR1B = 0;
-            PORTD &= ~(1 << PB1); // Set pin low just in case it is left high (not sure if needed)
+#ifdef __AVR_ATmega32U4__
+            PORTB &= ~(1 << PB5); // Set pin low just in case it is left high (not sure if needed)
+#else
+            PORTB &= ~(1 << PB1); // Set pin low just in case it is left high (not sure if needed)
+#endif
         }
 
     private:
