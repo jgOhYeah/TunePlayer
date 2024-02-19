@@ -39,6 +39,7 @@ If needed, define these before including `TunePlayer.h`.
 |    `NOTES_QUEUE_MAX`     | The number of notes that are buffered in the queue of notes to play at a time. If loading notes and playing in different tasks with different priorities, increasing this will allow the loading of notes to happen less frequently, but will increase the delay from calling `play` to sound actually being produced    |       4       |
 | `REPEATS_MAX_CONCURRENT` | The maximum number of repeats that will be expected at a time (levels of repeats inside repeats)                                                                                                                                                                                                                         |       4       |
 |     `DEFAULT_TEMPO`      | The default tempo in beats per minute to play at before a set tempo note is received.                                                                                                                                                                                                                                    |      120      |
+|    `TIMER_ONE_SOUND`     | If defined, will force the inclusion of the `TimerOneSound`. This is included if `AVR` or `TIMER_ONE_SOUND` is defined.                                                                                                                                                                                                  |   Undefined   |
 
 ## `TunePlayer` Class
 This class does handles interpreting notes given by a `TuneLoader` class, timing and passing the correct note to play on to a `SoundGenerator` object.
@@ -187,9 +188,11 @@ Takes a midi note (*0-127*) and calls `playNote` with the correct note and octav
 Uses the built in Arduino [`tone`](https://www.arduino.cc/reference/en/language/functions/advanced-io/tone/) function.
 
 ### `TimerOneSound` Derived Class
-Uses Timer One in avr based boards (atmega328p specifically). This offers a low more control over things such as the duty cycle. This class can be inherited by another class that overrides the `uint16_t m_compareValue(uint16_t counter)` method that returns the value at which the pin should go low when using fast pwm mode. `counter` is the value that the timer will reset at.
+Uses Timer One in avr based boards (atmega328p and atmega32u4 specifically). This offers a low more control over things such as the duty cycle. This class can be inherited by another class that overrides the `uint16_t m_compareValue(uint16_t counter)` method that returns the value at which the pin should go low when using fast pwm mode. `counter` is the value that the timer will reset at.
 
 See [this code](https://github.com/jgOhYeah/BikeHorn/blob/main/BikeHorn/soundGeneration.h) for an example (and original target) for the Timer One method.
+
+One the Arduino Uno, Nano and Micro, sound is output on pin D9 (PB1 for atmega328p, PB5 for atmega32u4).
 
 ### `MIDISound` Derived Class
 TODO: Not implemented yet.

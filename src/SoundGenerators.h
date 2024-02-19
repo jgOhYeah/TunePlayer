@@ -89,13 +89,18 @@ class ToneSound : public SoundGenerator {
 /**
  * Play using Timer One (more control, but limited to pin 9)
  */
+#if defined AVR || defined TIMER_ONE_SOUND
 class TimerOneSound : public SoundGenerator {
     public:
         TimerOneSound() {}
 
         /** Sets the pin as an output */
         void begin() {
+#ifdef __AVR_ATmega32U4__
+            DDRB |= (1 << PB5); // Set PB1 to be an output (Pin9 Arduino Micro)
+#else
             DDRB |= (1 << PB1); // Set PB1 to be an output (Pin9 Arduino UNO)
+#endif
         }
 
         /** Plays a given note. playTime is ignored. */
@@ -112,7 +117,11 @@ class TimerOneSound : public SoundGenerator {
             // Shutdown timer
             TCCR1A = 0;
             TCCR1B = 0;
-            PORTD &= ~(1 << PB1); // Set pin low just in case it is left high (not sure if needed)
+#ifdef __AVR_ATmega32U4__
+            PORTB &= ~(1 << PB5); // Set pin low just in case it is left high (not sure if needed)
+#else
+            PORTB &= ~(1 << PB1); // Set pin low just in case it is left high (not sure if needed)
+#endif
         }
 
     private:
@@ -129,3 +138,4 @@ class TimerOneSound : public SoundGenerator {
             return counter >> 1;
         }
 };
+#endif

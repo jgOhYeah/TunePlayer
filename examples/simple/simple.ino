@@ -3,9 +3,13 @@
  * 
  * Written by Jotham Gates, 12/06/2021
  */
-// #define MANUAL_CUTOFF // Required for TimerOneSound
+// #define USE_TIMER_ONE
+#ifdef USE_TIMER_ONE
+#define MANUAL_CUTOFF // Required for TimerOneSound
+#endif
 #include <TunePlayer.h>
-#define PIEZO_PIN 9
+
+#define PIEZO_PIN 9 // Can be just about any pin if using ToneSound, needs to be pin D9 on a Uno, Nano, Micro, etc for TimerOneSound.
 
 // Adapted from this midi file: https://www.8notes.com/scores/16380.asp?ftype=midi
 // See FucikEntryoftheGladiatorsPNO.mscz in extras/songs for an example of a suitable file to convert
@@ -21,8 +25,11 @@ const uint16_t FucikEntryoftheGladiatorsPNO[] PROGMEM = {
 };
 
 FlashTuneLoader flashLoader; // Where the notes come from
+#ifdef USE_TIMER_ONE
+TimerOneSound piezo; // Limited to pin 9 only on atmega328p boards
+#else
 ToneSound piezo(PIEZO_PIN); // What plays the notes
-// TimerOneSound piezo; // Limited to pin 9 only on atmega328p boards
+#endif
 TunePlayer tune; // Coordinates everything and does things at the right times.
 
 void setup() {
