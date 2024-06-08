@@ -1,4 +1,4 @@
-# TunePlayer Musescore3 Plugin
+# TunePlayer Musescore3/4 Plugin
 This plugin allows suitable sheet music to be easily converted into a format that TunePlayer can use.
 
 ## Installation
