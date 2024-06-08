@@ -10,19 +10,20 @@
  */
 
 // TODO: Stop command at end when a repeat is the last time
-// TODO: Optimise mode
+// TODO: Optimise mode (lzma style compression?)
 // TODO: Number box to select current track.
 // BUG: Copy paste text not working when there is an ERROR / WARNING message
 
-import QtQuick 2.8
+// import QtQuick 2.8
+import QtQuick 2.9
 import MuseScore 3.0
 import QtQuick.Controls 2.2
 MuseScore { 
-      // TODO: Text box to set the max number of notes per line.
       menuPath: "Plugins.Generate TunePlayer Code"
       description: "Exports single notes into a 16 bit format for an Arduino microcontroller. See https://github.com/jgOhYeah/TunePlayer for more details"
       version: "1.9.0"
       pluginType: "dialog"
+      requiresScore: true
 
       // Properties that can be changed
       width:  800
@@ -39,6 +40,15 @@ MuseScore {
       property var tieTotalTick: 0;
       property var repeatBackToAddress: 0;
       property var curLineNotes: 0;
+
+      Component.onCompleted: {
+            if (mscoreMajorVersion >= 4) {
+                  title = "Generate TunePlayer Code";
+                  thumbnailName = "tuneplayer_logo.svg";
+                  categoryCode = "electronics";
+            }
+      }
+
       onRun: {
             if (typeof curScore === 'undefined') {
                   // Exit (compatible with MS3 and MS4).

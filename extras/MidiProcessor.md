@@ -9,8 +9,8 @@ The suggested workflow for converting a generic MIDI file into code for the Tune
 2. If the file does not have notes starting and finishing exactly at the same time, then it may be worth 'quantising' the notes into discrete time steps.
 3. Run MidiProcessor on the MIDI file. Some adjustment of what to include / remove and the processing options may be required for best results.
 4. View and play back the output to see if it is ok.
-5. Import the MIDI file into MuseScore to generte sheet music.
-6. Use the [MuseScore plugin](./MusescorePlugin.md) to generate code that can be used by the TunePlayer library.
+5. Import the MIDI file into MuseScore to generate sheet music.
+6. Use the [MuseScore plugin](./TunePlayer_MusescorePlugin/MusescorePlugin.md) to generate code that can be used by the TunePlayer library.
 
 ## Usage instructions
     usage: MidiProcessor.py [-h] [-a [ADD_CHANNELS ...]] [-r [REMOVE_CHANNELS ...]] [-A [ADD_TRACKS ...]] [-R [REMOVE_TRACKS ...]] [-m {highest,lowest,latest,earliest}]
