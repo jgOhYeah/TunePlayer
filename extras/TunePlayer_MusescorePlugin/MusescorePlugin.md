@@ -15,7 +15,7 @@ Restart MuseScore if it was open. Open the plugin manager in *Plugins > Plugin M
 Copy the entire [TunePlayer_MusescorePlugin](./) folder containing [TunePlayer_MusescorePlugin.qml](TunePlayer_MusescorePlugin.qml) and [tuneplayer_logo.svg](tuneplayer_logo.svg) to the plugins folder in MuseScore 4. In my case:
 
 ```bash
-cp -r ~/Documents/Arduino/libraries/TunePlayer/extras/TunePlayer_MusescorePlugin ~/Documents/MuseScore4/Plugins/
+rsync -r ~/Documents/Arduino/libraries/TunePlayer/extras/TunePlayer_MusescorePlugin ~/Documents/MuseScore4/Plugins/
 ```
 
 Restart Musescore if it was open. Open the plugins tab (*Home > Plugins*) and click on the *Generate TunePlayer Code* extension. Make sure it is enabled.

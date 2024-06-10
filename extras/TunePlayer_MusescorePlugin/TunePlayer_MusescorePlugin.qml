@@ -14,14 +14,13 @@
 // TODO: Number box to select current track.
 // BUG: Copy paste text not working when there is an ERROR / WARNING message
 
-// import QtQuick 2.8
 import QtQuick 2.9
 import MuseScore 3.0
 import QtQuick.Controls 2.2
 MuseScore { 
       menuPath: "Plugins.Generate TunePlayer Code"
       description: "Exports single notes into a 16 bit format for an Arduino microcontroller. See https://github.com/jgOhYeah/TunePlayer for more details"
-      version: "1.9.0"
+      version: "1.9.0_debugging"
       pluginType: "dialog"
       requiresScore: true
 
@@ -45,7 +44,7 @@ MuseScore {
             if (mscoreMajorVersion >= 4) {
                   title = "Generate TunePlayer Code";
                   thumbnailName = "tuneplayer_logo.svg";
-                  categoryCode = "electronics";
+                  categoryCode = "export";
             }
       }
 
@@ -82,7 +81,11 @@ MuseScore {
             tieTotalTick = 0;
             repeatBackToAddress = 0;
             curLineNotes = 0;
-            curScore.createPlayEvents(); // To make the play events be meaningful
+            
+            // To make the play events be meaningful in MS4 hopefully.
+            curScore.startCmd();
+            curScore.createPlayEvents();
+            curScore.endCmd();
 
             // Do the work
             applyToNotesInSelection(repeat);
@@ -125,7 +128,7 @@ MuseScore {
 
       function applyToNotesInSelection(repeat) { // Originally based off one of the examples.
             var track = 0; // TODO: Selectable target track?
-
+        
             // The getting elements from measures directly seems to only end up with a lot of clefs and no notes, so
             // this monstrosity is required instead that attempts to keep segments starting from the beginning and
             // measures in sync.
@@ -296,8 +299,8 @@ MuseScore {
       function exportNote(notePitchInput,noteLength,note) {
             // Note effect (staccarto, slurred / legato)
             var noteEffect = 0;
-            // console.log(note.playEvents.length); // TODO: Use # of play events as indicator of glissando?
             if(note && note.playEvents) {
+                  addError("# Play events: " + note.playEvents.length + ", Play event 0 length: " + note.playEvents[0].len + "<br>\n");
                   if(note.playEvents[0].len < 501) {
                         // Staccarto
                         noteEffect = 1;
