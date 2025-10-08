@@ -1,5 +1,5 @@
 # TunePlayer MuseScore Plugin
-This plugin allows suitable sheet music to be easily converted into a format that TunePlayer can use. It has been tested with MuseScore 3.6.2 and MuseScore 4.3.0.
+This plugin allows suitable sheet music to be easily converted into a format that TunePlayer can use. It has been tested with MuseScore 3.6.2 and only partially works with MuseScore 4.
 
 See [here](https://github.com/jgOhYeah/TunePlayer) for more info on TunePlayer and updates.
 
@@ -12,13 +12,20 @@ Restart MuseScore if it was open. Open the plugin manager in *Plugins > Plugin M
 ![MuseScore 3 plugin manager screenshot](../images/MusescorePluginManager.png)
 
 ### MuseScore 4
+> [!WARNING]
+> Whilst work has been undertaken to allow this plugin to work with MuseScore 4, there are [issues with determining the note length](https://musescore.org/en/node/365096#comment-1247730) using the current method. Consequently, this plugin will slur every note when running with MuseScore 4.
+>
+> The API for MuseScore 4 plugins is also liable to change. This plugin was adapted for MuseScore 4.3.0 and has been tested to run with MuseScore 4.6.0, albeit without the icon.
+>
+> If have time and are willing to properly adapt the plugin to MuseScore 4, feel free to create an issue or pull request.
+
 Copy the entire [TunePlayer_MusescorePlugin](./) folder containing [TunePlayer_MusescorePlugin.qml](TunePlayer_MusescorePlugin.qml) and [tuneplayer_logo.svg](tuneplayer_logo.svg) to the plugins folder in MuseScore 4. In my case:
 
 ```bash
 rsync -r ~/Documents/Arduino/libraries/TunePlayer/extras/TunePlayer_MusescorePlugin ~/Documents/MuseScore4/Plugins/
 ```
 
-Restart Musescore if it was open. Open the plugins tab (*Home > Plugins*) and click on the *Generate TunePlayer Code* extension. Make sure it is enabled.
+Restart MuseScore if it was open. Open the plugins tab (*Home > Plugins*) and click on the *Generate TunePlayer Code* extension. Make sure it is enabled.
 
 ![MuseScore 4 plugin manager screenshot](../images/Musescore4PluginManager.png)
 
